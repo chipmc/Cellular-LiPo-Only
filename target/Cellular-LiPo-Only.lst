@@ -5,35 +5,35 @@ Sections:
 Idx Name          Size      VMA       LMA       File off  Algn
   0 .module_info  00000018  08080000  08080000  00010000  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
-  1 .text         00004c98  08080018  08080018  00010018  2**2
+  1 .text         00004ca8  08080018  08080018  00010018  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
-  2 .backup       00000004  40024000  08084cb0  00024000  2**2
+  2 .backup       00000004  40024000  08084cc0  00024000  2**2
                   CONTENTS, ALLOC, LOAD, DATA
-  3 .data         00000154  20000400  08084cb4  00030400  2**2
+  3 .data         00000154  20000400  08084cc4  00030400  2**2
                   CONTENTS, ALLOC, LOAD, DATA
   4 .bss          000007dc  20000554  20000554  00040554  2**2
                   ALLOC
-  5 .module_info_suffix 00000028  08084e08  08084e08  00034e08  2**0
+  5 .module_info_suffix 00000028  08084e18  08084e18  00034e18  2**0
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
-  6 .module_info_crc 00000004  08084e30  08084e30  00034e30  2**0
+  6 .module_info_crc 00000004  08084e40  08084e40  00034e40  2**0
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
-  7 .debug_info   000a0c6f  00000000  00000000  00034e34  2**0
+  7 .debug_info   000a0c6f  00000000  00000000  00034e44  2**0
                   CONTENTS, READONLY, DEBUGGING
-  8 .debug_abbrev 0000ef64  00000000  00000000  000d5aa3  2**0
+  8 .debug_abbrev 0000ef64  00000000  00000000  000d5ab3  2**0
                   CONTENTS, READONLY, DEBUGGING
-  9 .debug_loc    0001352d  00000000  00000000  000e4a07  2**0
+  9 .debug_loc    0001352d  00000000  00000000  000e4a17  2**0
                   CONTENTS, READONLY, DEBUGGING
- 10 .debug_aranges 00001fe0  00000000  00000000  000f7f34  2**0
+ 10 .debug_aranges 00001fe0  00000000  00000000  000f7f44  2**0
                   CONTENTS, READONLY, DEBUGGING
- 11 .debug_ranges 00003370  00000000  00000000  000f9f14  2**0
+ 11 .debug_ranges 00003370  00000000  00000000  000f9f24  2**0
                   CONTENTS, READONLY, DEBUGGING
- 12 .debug_macro  00023f63  00000000  00000000  000fd284  2**0
+ 12 .debug_macro  00023f63  00000000  00000000  000fd294  2**0
                   CONTENTS, READONLY, DEBUGGING
- 13 .debug_line   00022150  00000000  00000000  001211e7  2**0
+ 13 .debug_line   00022150  00000000  00000000  001211f7  2**0
                   CONTENTS, READONLY, DEBUGGING
- 14 .debug_str    000a4930  00000000  00000000  00143337  2**0
+ 14 .debug_str    000a4930  00000000  00000000  00143347  2**0
                   CONTENTS, READONLY, DEBUGGING
- 15 .debug_frame  0000bda8  00000000  00000000  001e7c68  2**2
+ 15 .debug_frame  0000bda8  00000000  00000000  001e7c78  2**2
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -82,7 +82,7 @@ void* module_user_pre_init() {
  8080040:	bd08      	pop	{r3, pc}
  8080042:	bf00      	nop
  8080044:	20000400 	.word	0x20000400
- 8080048:	08084cb4 	.word	0x08084cb4
+ 8080048:	08084cc4 	.word	0x08084cc4
  808004c:	20000554 	.word	0x20000554
  8080050:	20000554 	.word	0x20000554
  8080054:	20000d30 	.word	0x20000d30
@@ -128,8 +128,8 @@ void module_user_init()
 }
  808007c:	bd70      	pop	{r4, r5, r6, pc}
  808007e:	bf00      	nop
- 8080080:	08084c7c 	.word	0x08084c7c
- 8080084:	08084cb0 	.word	0x08084cb0
+ 8080080:	08084c80 	.word	0x08084c80
+ 8080084:	08084cb4 	.word	0x08084cb4
 
 08080088 <module_user_setup>:
 
@@ -212,7 +212,7 @@ int measureNow(String command) // Function to force sending data in current hour
   else return 0;
 }
  80800c6:	bd08      	pop	{r3, pc}
- 80800c8:	080846f0 	.word	0x080846f0
+ 80800c8:	080847b8 	.word	0x080847b8
  80800cc:	200005d1 	.word	0x200005d1
 
 080800d0 <_ZN11EEPROMClass4readEi.isra.14>:
@@ -1331,14 +1331,14 @@ int setVerboseMode(String command) // Function to force sending data in current 
 }
  80807b8:	b005      	add	sp, #20
  80807ba:	bd30      	pop	{r4, r5, pc}
- 80807bc:	080846f0 	.word	0x080846f0
+ 80807bc:	080847b8 	.word	0x080847b8
  80807c0:	200005c0 	.word	0x200005c0
  80807c4:	200006d8 	.word	0x200006d8
  80807c8:	20000594 	.word	0x20000594
  80807cc:	08084574 	.word	0x08084574
- 80807d0:	080847b6 	.word	0x080847b6
- 80807d4:	08084585 	.word	0x08084585
- 80807d8:	08084595 	.word	0x08084595
+ 80807d0:	08084585 	.word	0x08084585
+ 80807d4:	08084587 	.word	0x08084587
+ 80807d8:	08084597 	.word	0x08084597
 
 080807dc <_Z11setTimeZone6String>:
 
@@ -1454,8 +1454,8 @@ int setTimeZone(String command)
  8080876:	bd70      	pop	{r4, r5, r6, pc}
  8080878:	2000059c 	.word	0x2000059c
  808087c:	20000594 	.word	0x20000594
- 8080880:	0808459a 	.word	0x0808459a
- 8080884:	080845ae 	.word	0x080845ae
+ 8080880:	0808459c 	.word	0x0808459c
+ 8080884:	080845b0 	.word	0x080845b0
 
 08080888 <_Z15setLowPowerMode6String>:
 
@@ -1556,14 +1556,14 @@ int setLowPowerMode(String command)                                   // This is
 }
  8080920:	b004      	add	sp, #16
  8080922:	bd70      	pop	{r4, r5, r6, pc}
- 8080924:	080846f0 	.word	0x080846f0
- 8080928:	080847b6 	.word	0x080847b6
+ 8080924:	080847b8 	.word	0x080847b8
+ 8080928:	08084585 	.word	0x08084585
  808092c:	200006d8 	.word	0x200006d8
  8080930:	20000594 	.word	0x20000594
- 8080934:	08084595 	.word	0x08084595
- 8080938:	080845b3 	.word	0x080845b3
+ 8080934:	08084597 	.word	0x08084597
+ 8080938:	080845b5 	.word	0x080845b5
  808093c:	2000063c 	.word	0x2000063c
- 8080940:	080845bd 	.word	0x080845bd
+ 8080940:	080845bf 	.word	0x080845bf
 
 08080944 <_Z22publishStateTransitionv>:
 
@@ -1630,9 +1630,9 @@ void publishStateTransition(void)
  80809a8:	200005d1 	.word	0x200005d1
  80809ac:	20000400 	.word	0x20000400
  80809b0:	200005b0 	.word	0x200005b0
- 80809b4:	080845cf 	.word	0x080845cf
+ 80809b4:	080845d1 	.word	0x080845d1
  80809b8:	20000594 	.word	0x20000594
- 80809bc:	080845dd 	.word	0x080845dd
+ 80809bc:	080845df 	.word	0x080845df
  80809c0:	200006e0 	.word	0x200006e0
 
 080809c4 <loop>:
@@ -2026,21 +2026,21 @@ inline particle::Flags<TagT, ValueT>::Flags(Flag<TagT, ValueT> flag) :
  8080c40:	20000478 	.word	0x20000478
  8080c44:	200006b4 	.word	0x200006b4
  8080c48:	20000594 	.word	0x20000594
- 8080c4c:	080845ee 	.word	0x080845ee
+ 8080c4c:	080845f0 	.word	0x080845f0
  8080c50:	0808456e 	.word	0x0808456e
  8080c54:	200006e0 	.word	0x200006e0
  8080c58:	20000474 	.word	0x20000474
  8080c5c:	00015f90 	.word	0x00015f90
  8080c60:	2000056c 	.word	0x2000056c
  8080c64:	2000068c 	.word	0x2000068c
- 8080c68:	08084608 	.word	0x08084608
+ 8080c68:	0808460a 	.word	0x0808460a
  8080c6c:	080843ca 	.word	0x080843ca
  8080c70:	20000558 	.word	0x20000558
- 8080c74:	08084621 	.word	0x08084621
+ 8080c74:	08084623 	.word	0x08084623
  8080c78:	20000618 	.word	0x20000618
  8080c7c:	200006b0 	.word	0x200006b0
  8080c80:	20000630 	.word	0x20000630
- 8080c84:	08084630 	.word	0x08084630
+ 8080c84:	08084632 	.word	0x08084632
 
   case ERROR_STATE:                                                   // To be enhanced - where we deal with errors
     if (verboseMode && state != oldState) publishStateTransition();
@@ -2175,9 +2175,9 @@ void loop()
  8080d88:	20000618 	.word	0x20000618
  8080d8c:	20000594 	.word	0x20000594
  8080d90:	0808456e 	.word	0x0808456e
- 8080d94:	08084647 	.word	0x08084647
- 8080d98:	0808465b 	.word	0x0808465b
- 8080d9c:	08084675 	.word	0x08084675
+ 8080d94:	08084649 	.word	0x08084649
+ 8080d98:	0808465d 	.word	0x0808465d
+ 8080d9c:	08084677 	.word	0x08084677
 
 08080da0 <_ZN10CloudClass8variableIA14_cIA16_cEEEbRKT_DpRKT0_>:
         return _variable(varKey, (const char*)userVar, userVarType);
@@ -2685,48 +2685,48 @@ inline particle::Flags<TagT, ValueT>::Flags(Flag<TagT, ValueT> flag) :
  808102c:	200005d1 	.word	0x200005d1
  8081030:	0808065d 	.word	0x0808065d
  8081034:	20000648 	.word	0x20000648
- 8081038:	08084694 	.word	0x08084694
+ 8081038:	08084696 	.word	0x08084696
  808103c:	20000618 	.word	0x20000618
- 8081040:	0808469b 	.word	0x0808469b
+ 8081040:	0808469d 	.word	0x0808469d
  8081044:	20000470 	.word	0x20000470
- 8081048:	080846a6 	.word	0x080846a6
+ 8081048:	080846a8 	.word	0x080846a8
  808104c:	200006c8 	.word	0x200006c8
- 8081050:	080846ae 	.word	0x080846ae
+ 8081050:	080846b0 	.word	0x080846b0
  8081054:	2000063c 	.word	0x2000063c
- 8081058:	080846b9 	.word	0x080846b9
+ 8081058:	080846bb 	.word	0x080846bb
  808105c:	20000559 	.word	0x20000559
- 8081060:	080846c6 	.word	0x080846c6
+ 8081060:	080846c8 	.word	0x080846c8
  8081064:	200006b8 	.word	0x200006b8
- 8081068:	080846d2 	.word	0x080846d2
+ 8081068:	080846d4 	.word	0x080846d4
  808106c:	200006e4 	.word	0x200006e4
- 8081070:	080846db 	.word	0x080846db
+ 8081070:	080846dd 	.word	0x080846dd
  8081074:	20000580 	.word	0x20000580
- 8081078:	080846e4 	.word	0x080846e4
+ 8081078:	080846e6 	.word	0x080846e6
  808107c:	200005a0 	.word	0x200005a0
- 8081080:	080846f2 	.word	0x080846f2
+ 8081080:	080846f4 	.word	0x080846f4
  8081084:	200005c1 	.word	0x200005c1
- 8081088:	08084700 	.word	0x08084700
+ 8081088:	08084702 	.word	0x08084702
  808108c:	200005d9 	.word	0x200005d9
- 8081090:	0808470e 	.word	0x0808470e
+ 8081090:	08084710 	.word	0x08084710
  8081094:	20000608 	.word	0x20000608
- 8081098:	0808471c 	.word	0x0808471c
+ 8081098:	0808471e 	.word	0x0808471e
  808109c:	20000570 	.word	0x20000570
- 80810a0:	0808472a 	.word	0x0808472a
+ 80810a0:	0808472c 	.word	0x0808472c
  80810a4:	080800b5 	.word	0x080800b5
- 80810a8:	08084738 	.word	0x08084738
+ 80810a8:	0808473a 	.word	0x0808473a
  80810ac:	08080889 	.word	0x08080889
- 80810b0:	08084744 	.word	0x08084744
+ 80810b0:	08084746 	.word	0x08084746
  80810b4:	08080731 	.word	0x08080731
- 80810b8:	08084751 	.word	0x08084751
+ 80810b8:	08084753 	.word	0x08084753
  80810bc:	080807dd 	.word	0x080807dd
- 80810c0:	0808475e 	.word	0x0808475e
+ 80810c0:	08084760 	.word	0x08084760
  80810c4:	200005c0 	.word	0x200005c0
  80810c8:	20000478 	.word	0x20000478
  80810cc:	200006b4 	.word	0x200006b4
- 80810d0:	0808476a 	.word	0x0808476a
+ 80810d0:	0808476c 	.word	0x0808476c
  80810d4:	200006e0 	.word	0x200006e0
  80810d8:	20000594 	.word	0x20000594
- 80810dc:	0808477c 	.word	0x0808477c
+ 80810dc:	0808477e 	.word	0x0808477e
  80810e0:	200006d8 	.word	0x200006d8
 
 080810e4 <_GLOBAL__sub_I_SystemMode>:
@@ -4125,7 +4125,7 @@ public:
  80817b2:	4620      	mov	r0, r4
  80817b4:	b009      	add	sp, #36	; 0x24
  80817b6:	bdf0      	pop	{r4, r5, r6, r7, pc}
- 80817b8:	080847f4 	.word	0x080847f4
+ 80817b8:	080847f8 	.word	0x080847f8
 
 080817bc <_GLOBAL__sub_I__ZN5spark13CellularClass4RSSIEv>:
         return (band_get.ok = true);
@@ -4185,7 +4185,7 @@ public:
  80817ee:	bd38      	pop	{r3, r4, r5, pc}
  80817f0:	20000728 	.word	0x20000728
  80817f4:	200006f4 	.word	0x200006f4
- 80817f8:	080847c0 	.word	0x080847c0
+ 80817f8:	080847c4 	.word	0x080847c4
 
 080817fc <_ZN14CellularSignalD1Ev>:
     CellularSignal(const cellular_signal_t& sig);
@@ -5553,7 +5553,7 @@ inline particle::Error::~Error() {
  8081cb4:	4630      	mov	r0, r6
  8081cb6:	b00b      	add	sp, #44	; 0x2c
  8081cb8:	e8bd 8ff0 	ldmia.w	sp!, {r4, r5, r6, r7, r8, r9, sl, fp, pc}
- 8081cbc:	08084828 	.word	0x08084828
+ 8081cbc:	0808482c 	.word	0x0808482c
  8081cc0:	08081e2d 	.word	0x08081e2d
 
 08081cc4 <_ZNSt14_Function_base13_Base_managerISt5_BindIFSt8functionIFvRKN8particle5ErrorEEES4_EEE10_M_managerERSt9_Any_dataRKSC_St18_Manager_operation>:
@@ -6280,7 +6280,7 @@ TwoWire::TwoWire(HAL_I2C_Interface i2c)
  8081f16:	4620      	mov	r0, r4
  8081f18:	bd10      	pop	{r4, pc}
  8081f1a:	bf00      	nop
- 8081f1c:	08084844 	.word	0x08084844
+ 8081f1c:	08084848 	.word	0x08084848
 
 08081f20 <_ZN7TwoWire9isEnabledEv>:
   HAL_I2C_Set_Callback_On_Request(_i2c, function, NULL);
@@ -6389,7 +6389,7 @@ IPAddress::IPAddress()
 }
  8081f70:	4770      	bx	lr
  8081f72:	bf00      	nop
- 8081f74:	0808486c 	.word	0x0808486c
+ 8081f74:	08084870 	.word	0x08084870
 
 08081f78 <_ZN9IPAddressC1ERK16_HAL_IPAddress_t>:
 
@@ -6403,7 +6403,7 @@ IPAddress::IPAddress(const HAL_IPAddress& address)
 }
  8081f80:	4770      	bx	lr
  8081f82:	bf00      	nop
- 8081f84:	0808486c 	.word	0x0808486c
+ 8081f84:	08084870 	.word	0x08084870
 
 08081f88 <_ZN9IPAddressC1Em>:
 IPAddress::IPAddress(uint8_t first_octet, uint8_t second_octet, uint8_t third_octet, uint8_t fourth_octet)
@@ -6431,7 +6431,7 @@ IPAddress::IPAddress(uint32_t address)
     *this = address;
 }
  8081f8e:	4770      	bx	lr
- 8081f90:	0808486c 	.word	0x0808486c
+ 8081f90:	08084870 	.word	0x08084870
 
 08081f94 <_ZN9IPAddress8set_ipv4Ehhhh>:
     return address.ipv4!=0;
@@ -6468,7 +6468,7 @@ IPAddress::IPAddress(uint8_t first_octet, uint8_t second_octet, uint8_t third_oc
 }
  8081fbc:	b003      	add	sp, #12
  8081fbe:	bd30      	pop	{r4, r5, pc}
- 8081fc0:	0808486c 	.word	0x0808486c
+ 8081fc0:	08084870 	.word	0x08084870
 
 08081fc4 <_GLOBAL__sub_I__ZN5spark3LogE>:
     // This handler doesn't support direct logging
@@ -6481,7 +6481,7 @@ inline spark::Logger::Logger(const char *name) :
  8081fc6:	4b02      	ldr	r3, [pc, #8]	; (8081fd0 <_GLOBAL__sub_I__ZN5spark3LogE+0xc>)
  8081fc8:	601a      	str	r2, [r3, #0]
  8081fca:	4770      	bx	lr
- 8081fcc:	0808492d 	.word	0x0808492d
+ 8081fcc:	08084931 	.word	0x08084931
  8081fd0:	20000750 	.word	0x20000750
 
 08081fd4 <_ZN5spark12NetworkClass7connectEj>:
@@ -6653,7 +6653,7 @@ IPAddress NetworkClass::resolve(const char* name) {
  8082090:	605a      	str	r2, [r3, #4]
  8082092:	4770      	bx	lr
  8082094:	20000754 	.word	0x20000754
- 8082098:	08084960 	.word	0x08084960
+ 8082098:	08084964 	.word	0x08084964
 
 0808209c <_ZN5Print5writeEPKhj>:
 
@@ -7135,7 +7135,7 @@ SPIClass::SPIClass(HAL_SPI_Interface spi)
  8082226:	4620      	mov	r0, r4
  8082228:	bd70      	pop	{r4, r5, r6, pc}
  808222a:	bf00      	nop
- 808222c:	08084994 	.word	0x08084994
+ 808222c:	08084998 	.word	0x08084998
 
 08082230 <_ZN8SPIClass9isEnabledEv>:
   //To Do
@@ -8188,7 +8188,7 @@ USARTSerial::USARTSerial(HAL_USART_Serial serial, Ring_Buffer *rx_buffer, Ring_B
  80825de:	4620      	mov	r0, r4
  80825e0:	bd10      	pop	{r4, pc}
  80825e2:	bf00      	nop
- 80825e4:	080849cc 	.word	0x080849cc
+ 80825e4:	080849d0 	.word	0x080849d0
 
 080825e8 <_ZN11USARTSerial9isEnabledEv>:
 USARTSerial::operator bool() {
@@ -8388,7 +8388,7 @@ USBSerial::USBSerial(HAL_USB_USART_Serial serial, const HAL_USB_USART_Config& co
 }
  80826b0:	4620      	mov	r0, r4
  80826b2:	bd10      	pop	{r4, pc}
- 80826b4:	080849fc 	.word	0x080849fc
+ 80826b4:	08084a00 	.word	0x08084a00
 
 080826b8 <_Z19acquireSerialBufferv>:
 
@@ -8713,7 +8713,7 @@ void system_initialize_user_backup_ram()
  8082840:	f001 b87e 	b.w	8083940 <memcpy>
  8082844:	40024000 	.word	0x40024000
  8082848:	40024004 	.word	0x40024004
- 808284c:	08084cb0 	.word	0x08084cb0
+ 808284c:	08084cc0 	.word	0x08084cc0
 
 08082850 <_Z27ctrl_request_custom_handlerP12ctrl_request>:
 bool __backup_ram_was_valid() { return false; }
@@ -10430,9 +10430,9 @@ SPIClass SPI2(HAL_SPI_INTERFACE3);
  808371a:	4620      	mov	r0, r4
  808371c:	b006      	add	sp, #24
  808371e:	bd10      	pop	{r4, pc}
- 8083720:	08084a39 	.word	0x08084a39
- 8083724:	08084a24 	.word	0x08084a24
- 8083728:	08084a5d 	.word	0x08084a5d
+ 8083720:	08084a3d 	.word	0x08084a3d
+ 8083724:	08084a28 	.word	0x08084a28
+ 8083728:	08084a61 	.word	0x08084a61
 
 0808372c <atoi>:
  808372c:	220a      	movs	r2, #10
@@ -10661,7 +10661,7 @@ SPIClass SPI2(HAL_SPI_INTERFACE3);
  8083930:	4620      	mov	r0, r4
  8083932:	e8bd 81f0 	ldmia.w	sp!, {r4, r5, r6, r7, r8, pc}
  8083936:	bf00      	nop
- 8083938:	08084be0 	.word	0x08084be0
+ 8083938:	08084be4 	.word	0x08084be4
  808393c:	20000d24 	.word	0x20000d24
 
 08083940 <memcpy>:
@@ -11206,7 +11206,7 @@ SPIClass SPI2(HAL_SPI_INTERFACE3);
  8083e58:	2000      	movs	r0, #0
  8083e5a:	b003      	add	sp, #12
  8083e5c:	e8bd 8ff0 	ldmia.w	sp!, {r4, r5, r6, r7, r8, r9, sl, fp, pc}
- 8083e60:	08084be0 	.word	0x08084be0
+ 8083e60:	08084be4 	.word	0x08084be4
  8083e64:	00015180 	.word	0x00015180
 
 08083e68 <__tz_lock>:
@@ -11499,17 +11499,17 @@ SPIClass SPI2(HAL_SPI_INTERFACE3);
  8084140:	b00d      	add	sp, #52	; 0x34
  8084142:	e8bd 8ff0 	ldmia.w	sp!, {r4, r5, r6, r7, r8, r9, sl, fp, pc}
  8084146:	bf00      	nop
- 8084148:	08084c40 	.word	0x08084c40
+ 8084148:	08084c44 	.word	0x08084c44
  808414c:	20000d20 	.word	0x20000d20
  8084150:	20000d28 	.word	0x20000d28
- 8084154:	08084c43 	.word	0x08084c43
+ 8084154:	08084c47 	.word	0x08084c47
  8084158:	20000d24 	.word	0x20000d24
  808415c:	20000508 	.word	0x20000508
  8084160:	20000d13 	.word	0x20000d13
- 8084164:	08084c47 	.word	0x08084c47
- 8084168:	08084c6a 	.word	0x08084c6a
- 808416c:	08084c56 	.word	0x08084c56
- 8084170:	08084c69 	.word	0x08084c69
+ 8084164:	08084c4b 	.word	0x08084c4b
+ 8084168:	08084c6e 	.word	0x08084c6e
+ 808416c:	08084c5a 	.word	0x08084c5a
+ 8084170:	08084c6d 	.word	0x08084c6d
  8084174:	20000d08 	.word	0x20000d08
 
 08084178 <_findenv_r>:
@@ -11719,162 +11719,165 @@ SPIClass SPI2(HAL_SPI_INTERFACE3);
  808454c:	6174 5500 6962 6f64 7374 4820 6f6f 006b     ta.Ubidots Hook.
  808455c:	6552 7073 6e6f 6573 5220 6365 6965 6576     Response Receive
  808456c:	0064 7453 7461 0065 6553 2074 6556 6272     d.State.Set Verb
- 808457c:	736f 2065 6f4d 6564 4300 656c 7261 6465     ose Mode.Cleared
- 808458c:	5620 7265 6f62 6573 4d20 646f 0065 6954      Verbose Mode.Ti
- 808459c:	656d 7a20 6e6f 2065 666f 7366 7465 2520     me zone offset %
- 80845ac:	0069 6954 656d 4c00 776f 5020 776f 7265     i.Time.Low Power
- 80845bc:	4e00 726f 616d 206c 704f 7265 7461 6f69     .Normal Operatio
- 80845cc:	736e 4600 6f72 206d 7325 7420 206f 7325     ns.From %s to %s
- 80845dc:	5300 6174 6574 5420 6172 736e 7469 6f69     .State Transitio
- 80845ec:	006e 7245 6f72 2072 6174 696b 676e 4d20     n.Error taking M
- 80845fc:	6165 7573 6572 656d 746e 0073 7073 7261     easurements.spar
- 808460c:	2f6b 6564 6976 6563 732f 7365 6973 6e6f     k/device/session
- 808461c:	652f 646e 4700 696f 676e 7420 206f 6c53     /end.Going to Sl
- 808462c:	6565 0070 6f4c 2077 6142 7474 7265 2079     eep.Low Battery 
- 808463c:	202d 6c53 6565 6970 676e 4500 7272 726f     - Sleeping.Error
- 808464c:	5320 6174 6574 2d20 5220 7365 7465 4500      State - Reset.E
- 808465c:	7272 726f 5320 6174 6574 2d20 5020 776f     rror State - Pow
- 808466c:	7265 4320 6379 656c 4500 7272 726f 5320     er Cycle.Error S
- 808467c:	6174 6574 2d20 4620 6c75 206c 6f4d 6564     tate - Full Mode
- 808468c:	206d 6552 6573 0074 6953 6e67 6c61 5200     m Reset.Signal.R
- 808469c:	7365 7465 6f43 6e75 0074 6552 656c 7361     esetCount.Releas
- 80846ac:	0065 7473 7461 4f65 4366 6768 6c00 776f     e.stateOfChg.low
- 80846bc:	6f50 6577 4d72 646f 0065 6574 706d 7265     PowerMode.temper
- 80846cc:	7461 7275 0065 7568 696d 6964 7974 5300     ature.humidity.S
- 80846dc:	696f 546c 6d65 0070 6f53 6c69 6f4d 7369     oilTemp.SoilMois
- 80846ec:	7574 6572 0031 6f53 6c69 6f4d 7369 7574     ture1.SoilMoistu
- 80846fc:	6572 0032 6f53 6c69 6f4d 7369 7574 6572     re2.SoilMoisture
- 808470c:	0033 6f53 6c69 6f4d 7369 7574 6572 0034     3.SoilMoisture4.
- 808471c:	6f53 6c69 6f4d 7369 7574 6572 0035 6f53     SoilMoisture5.So
- 808472c:	6c69 6f4d 7369 7574 6572 0036 654d 7361     ilMoisture6.Meas
- 808473c:	7275 2d65 6f4e 0077 6f4c 5077 776f 7265     ure-Now.LowPower
- 808474c:	6f4d 6564 5600 7265 6f62 6573 4d2d 646f     Mode.Verbose-Mod
- 808475c:	0065 6553 5474 6d69 5a65 6e6f 0065 6146     e.SetTimeZone.Fa
- 808476c:	6c69 6465 7420 206f 6f63 6e6e 6365 0074     iled to connect.
- 808477c:	7453 7261 7574 0070 6e55 6e6b 776f 006e     Startup.Unknown.
- 808478c:	6f4e 656e 5700 4669 0069 5347 004d 4d55     None.WiFi.GSM.UM
- 808479c:	5354 4300 4d44 0041 544c 0045 4549 4545     TS.CDMA.LTE.IEEE
- 80847ac:	3038 3132 3435 3100 302e 0030               802154.1.00.
+ 808457c:	736f 2065 6f4d 6564 3000 4300 656c 7261     ose Mode.0.Clear
+ 808458c:	6465 5620 7265 6f62 6573 4d20 646f 0065     ed Verbose Mode.
+ 808459c:	6954 656d 7a20 6e6f 2065 666f 7366 7465     Time zone offset
+ 80845ac:	2520 0069 6954 656d 4c00 776f 5020 776f      %i.Time.Low Pow
+ 80845bc:	7265 4e00 726f 616d 206c 704f 7265 7461     er.Normal Operat
+ 80845cc:	6f69 736e 4600 6f72 206d 7325 7420 206f     ions.From %s to 
+ 80845dc:	7325 5300 6174 6574 5420 6172 736e 7469     %s.State Transit
+ 80845ec:	6f69 006e 7245 6f72 2072 6174 696b 676e     ion.Error taking
+ 80845fc:	4d20 6165 7573 6572 656d 746e 0073 7073      Measurements.sp
+ 808460c:	7261 2f6b 6564 6976 6563 732f 7365 6973     ark/device/sessi
+ 808461c:	6e6f 652f 646e 4700 696f 676e 7420 206f     on/end.Going to 
+ 808462c:	6c53 6565 0070 6f4c 2077 6142 7474 7265     Sleep.Low Batter
+ 808463c:	2079 202d 6c53 6565 6970 676e 4500 7272     y - Sleeping.Err
+ 808464c:	726f 5320 6174 6574 2d20 5220 7365 7465     or State - Reset
+ 808465c:	4500 7272 726f 5320 6174 6574 2d20 5020     .Error State - P
+ 808466c:	776f 7265 4320 6379 656c 4500 7272 726f     ower Cycle.Error
+ 808467c:	5320 6174 6574 2d20 4620 6c75 206c 6f4d      State - Full Mo
+ 808468c:	6564 206d 6552 6573 0074 6953 6e67 6c61     dem Reset.Signal
+ 808469c:	5200 7365 7465 6f43 6e75 0074 6552 656c     .ResetCount.Rele
+ 80846ac:	7361 0065 7473 7461 4f65 4366 6768 6c00     ase.stateOfChg.l
+ 80846bc:	776f 6f50 6577 4d72 646f 0065 6574 706d     owPowerMode.temp
+ 80846cc:	7265 7461 7275 0065 7568 696d 6964 7974     erature.humidity
+ 80846dc:	5300 696f 546c 6d65 0070 6f53 6c69 6f4d     .SoilTemp.SoilMo
+ 80846ec:	7369 7574 6572 0031 6f53 6c69 6f4d 7369     isture1.SoilMois
+ 80846fc:	7574 6572 0032 6f53 6c69 6f4d 7369 7574     ture2.SoilMoistu
+ 808470c:	6572 0033 6f53 6c69 6f4d 7369 7574 6572     re3.SoilMoisture
+ 808471c:	0034 6f53 6c69 6f4d 7369 7574 6572 0035     4.SoilMoisture5.
+ 808472c:	6f53 6c69 6f4d 7369 7574 6572 0036 654d     SoilMoisture6.Me
+ 808473c:	7361 7275 2d65 6f4e 0077 6f4c 5077 776f     asure-Now.LowPow
+ 808474c:	7265 6f4d 6564 5600 7265 6f62 6573 4d2d     erMode.Verbose-M
+ 808475c:	646f 0065 6553 5474 6d69 5a65 6e6f 0065     ode.SetTimeZone.
+ 808476c:	6146 6c69 6465 7420 206f 6f63 6e6e 6365     Failed to connec
+ 808477c:	0074 7453 7261 7574 0070 6e55 6e6b 776f     t.Startup.Unknow
+ 808478c:	006e 6f4e 656e 5700 4669 0069 5347 004d     n.None.WiFi.GSM.
+ 808479c:	4d55 5354 4300 4d44 0041 544c 0045 4549     UMTS.CDMA.LTE.IE
+ 80847ac:	4545 3038 3132 3435 3100 302e 0031 0000     EE802154.1.01...
 
-080847b8 <_ZTVN5spark13CellularClassE>:
+080847bc <_ZTVN5spark13CellularClassE>:
 	...
- 80847c0:	173f 0808 1735 0808 172b 0808 169d 0808     ?...5...+.......
- 80847d0:	171f 0808 1713 0808 1707 0808 16ff 0808     ................
- 80847e0:	16f5 0808 16eb 0808 16a7 0808               ............
+ 80847c4:	173f 0808 1735 0808 172b 0808 169d 0808     ?...5...+.......
+ 80847d4:	171f 0808 1713 0808 1707 0808 16ff 0808     ................
+ 80847e4:	16f5 0808 16eb 0808 16a7 0808               ............
 
-080847ec <_ZTV14CellularSignal>:
+080847f0 <_ZTV14CellularSignal>:
 	...
- 80847f4:	17fd 0808 187f 0808 17ff 0808 18bd 0808     ................
- 8084804:	1805 0808 188d 0808 1829 0808 184d 0808     ........)...M...
- 8084814:	fffc ffff 0000 0000 1877 0808               ........w...
+ 80847f8:	17fd 0808 187f 0808 17ff 0808 18bd 0808     ................
+ 8084808:	1805 0808 188d 0808 1829 0808 184d 0808     ........)...M...
+ 8084818:	fffc ffff 0000 0000 1877 0808               ........w...
 
-08084820 <_ZTVSt15_Sp_counted_ptrIPN8particle6detail10FutureImplIbNS1_13FutureContextEEELN9__gnu_cxx12_Lock_policyE0EE>:
+08084824 <_ZTVSt15_Sp_counted_ptrIPN8particle6detail10FutureImplIbNS1_13FutureContextEEELN9__gnu_cxx12_Lock_policyE0EE>:
 	...
- 8084828:	1905 0808 190b 0808 1933 0808 1917 0808     ........3.......
- 8084838:	1907 0808                                   ....
+ 808482c:	1905 0808 190b 0808 1933 0808 1917 0808     ........3.......
+ 808483c:	1907 0808                                   ....
 
-0808483c <_ZTV7TwoWire>:
+08084840 <_ZTV7TwoWire>:
 	...
- 8084844:	1ea5 0808 1eef 0808 1ec7 0808 1ea7 0808     ................
- 8084854:	1ecf 0808 1ed7 0808 1edf 0808 1ee7 0808     ................
+ 8084848:	1ea5 0808 1eef 0808 1ec7 0808 1ea7 0808     ................
+ 8084858:	1ecf 0808 1ed7 0808 1edf 0808 1ee7 0808     ................
 
-08084864 <_ZTV9IPAddress>:
+08084868 <_ZTV9IPAddress>:
 	...
- 808486c:	1f37 0808 1f29 0808 1f2b 0808 0066 6e6c     7...)...+...f.ln
- 808487c:	6600 006e 6f63 6564 6400 7465 6961 006c     .fn.code.detail.
- 808488c:	3025 3031 2075 5d00 0020 6425 2c00 0020     %010u .] .%d., .
- 808489c:	2928 203a 2000 005b 6f63 6564 3d20 0020     (): . [.code = .
- 80848ac:	6564 6174 6c69 2073 203d 6200 7561 0064     details = .baud.
- 80848bc:	6553 6972 6c61 5500 4253 6553 6972 6c61     Serial.USBSerial
- 80848cc:	0031 7974 6570 7000 7261 6d61 6300 646d     1.type.param.cmd
- 80848dc:	6900 0064 6e68 0064 7473 6d72 6600 6c69     .id.hnd.strm.fil
- 80848ec:	0074 766c 006c 6461 4864 6e61 6c64 7265     t.lvl.addHandler
- 80848fc:	7200 6d65 766f 4865 6e61 6c64 7265 6500     .removeHandler.e
- 808490c:	756e 486d 6e61 6c64 7265 0073 534a 4e4f     numHandlers.JSON
- 808491c:	7453 6572 6d61 6f4c 4867 6e61 6c64 7265     StreamLogHandler
- 808492c:	6100 7070 6e00 6e6f 0065 7274 6361 0065     .app.none.trace.
- 808493c:	6e69 6f66 7700 7261 006e 7265 6f72 0072     info.warn.error.
- 808494c:	6170 696e 0063 6c61 006c 0000               panic.all...
+ 8084870:	1f37 0808 1f29 0808 1f2b 0808 0066 6e6c     7...)...+...f.ln
+ 8084880:	6600 006e 6f63 6564 6400 7465 6961 006c     .fn.code.detail.
+ 8084890:	3025 3031 2075 5d00 0020 6425 2c00 0020     %010u .] .%d., .
+ 80848a0:	2928 203a 2000 005b 6f63 6564 3d20 0020     (): . [.code = .
+ 80848b0:	6564 6174 6c69 2073 203d 6200 7561 0064     details = .baud.
+ 80848c0:	6553 6972 6c61 5500 4253 6553 6972 6c61     Serial.USBSerial
+ 80848d0:	0031 7974 6570 7000 7261 6d61 6300 646d     1.type.param.cmd
+ 80848e0:	6900 0064 6e68 0064 7473 6d72 6600 6c69     .id.hnd.strm.fil
+ 80848f0:	0074 766c 006c 6461 4864 6e61 6c64 7265     t.lvl.addHandler
+ 8084900:	7200 6d65 766f 4865 6e61 6c64 7265 6500     .removeHandler.e
+ 8084910:	756e 486d 6e61 6c64 7265 0073 534a 4e4f     numHandlers.JSON
+ 8084920:	7453 6572 6d61 6f4c 4867 6e61 6c64 7265     StreamLogHandler
+ 8084930:	6100 7070 6e00 6e6f 0065 7274 6361 0065     .app.none.trace.
+ 8084940:	6e69 6f66 7700 7261 006e 7265 6f72 0072     info.warn.error.
+ 8084950:	6170 696e 0063 6c61 006c 0000               panic.all...
 
-08084958 <_ZTVN5spark12NetworkClassE>:
+0808495c <_ZTVN5spark12NetworkClassE>:
 	...
- 8084960:	1fd5 0808 1fdf 0808 1fe9 0808 1ff3 0808     ................
- 8084970:	1ffd 0808 2009 0808 2015 0808 2021 0808     ..... ... ..! ..
- 8084980:	2029 0808 2033 0808 203d 0808               ) ..3 ..= ..
+ 8084964:	1fd5 0808 1fdf 0808 1fe9 0808 1ff3 0808     ................
+ 8084974:	1ffd 0808 2009 0808 2015 0808 2021 0808     ..... ... ..! ..
+ 8084984:	2029 0808 2033 0808 203d 0808               ) ..3 ..= ..
 
-0808498c <_ZTV8SPIClass>:
+08084990 <_ZTV8SPIClass>:
 	...
- 8084994:	21f9 0808 21fb 0808 2b25 3330 3a64 3025     .!...!..%+03d:%0
- 80849a4:	7532 2500 2d59 6d25 252d 5464 4825 253a     2u.%Y-%m-%dT%H:%
- 80849b4:	3a4d 5325 7a25 6100 6373 6974 656d 0000     M:%S%z.asctime..
+ 8084998:	21f9 0808 21fb 0808 2b25 3330 3a64 3025     .!...!..%+03d:%0
+ 80849a8:	7532 2500 2d59 6d25 252d 5464 4825 253a     2u.%Y-%m-%dT%H:%
+ 80849b8:	3a4d 5325 7a25 6100 6373 6974 656d 0000     M:%S%z.asctime..
 
-080849c4 <_ZTV11USARTSerial>:
+080849c8 <_ZTV11USARTSerial>:
 	...
- 80849cc:	2569 0808 258d 0808 2599 0808 209d 0808     i%...%...%... ..
- 80849dc:	2575 0808 2581 0808 257b 0808 2587 0808     u%...%..{%...%..
- 80849ec:	256b 0808 256f 0808                         k%..o%..
+ 80849d0:	2569 0808 258d 0808 2599 0808 209d 0808     i%...%...%... ..
+ 80849e0:	2575 0808 2581 0808 257b 0808 2587 0808     u%...%..{%...%..
+ 80849f0:	256b 0808 256f 0808                         k%..o%..
 
-080849f4 <_ZTV9USBSerial>:
+080849f8 <_ZTV9USBSerial>:
 	...
- 80849fc:	2641 0808 2685 0808 265f 0808 209d 0808     A&...&.._&... ..
- 8084a0c:	2659 0808 2643 0808 264b 0808 267f 0808     Y&..C&..K&...&..
- 8084a1c:	2653 0808 263d 0808                         S&..=&..
+ 8084a00:	2641 0808 2685 0808 265f 0808 209d 0808     A&...&.._&... ..
+ 8084a10:	2659 0808 2643 0808 264b 0808 267f 0808     Y&..C&..K&...&..
+ 8084a20:	2653 0808 263d 0808                         S&..=&..
 
-08084a24 <day_name.4723>:
- 8084a24:	7553 4d6e 6e6f 7554 5765 6465 6854 4675     SunMonTueWedThuF
- 8084a34:	6972 6153 4a74                                   riSat
+08084a28 <day_name.4723>:
+ 8084a28:	7553 4d6e 6e6f 7554 5765 6465 6854 4675     SunMonTueWedThuF
+ 8084a38:	6972 6153 4a74                                   riSat
 
-08084a39 <mon_name.4724>:
- 8084a39:	614a 466e 6265 614d 4172 7270 614d 4a79     JanFebMarAprMayJ
- 8084a49:	6e75 754a 416c 6775 6553 4f70 7463 6f4e     unJulAugSepOctNo
- 8084a59:	4476 6365 2e25 7333 2520 332e 2573 6433     vDec%.3s %.3s%3d
- 8084a69:	2520 322e 3a64 2e25 6432 253a 322e 2064      %.2d:%.2d:%.2d 
- 8084a79:	6425 000a                                   %d..
+08084a3d <mon_name.4724>:
+ 8084a3d:	614a 466e 6265 614d 4172 7270 614d 4a79     JanFebMarAprMayJ
+ 8084a4d:	6e75 754a 416c 6775 6553 4f70 7463 6f4e     unJulAugSepOctNo
+ 8084a5d:	4476 6365 2e25 7333 2520 332e 2573 6433     vDec%.3s %.3s%3d
+ 8084a6d:	2520 322e 3a64 2e25 6432 253a 322e 2064      %.2d:%.2d:%.2d 
+ 8084a7d:	6425 000a                                   %d..
 
-08084a7d <_ctype_>:
- 8084a7d:	2000 2020 2020 2020 2020 2828 2828 2028     .         ((((( 
- 8084a8d:	2020 2020 2020 2020 2020 2020 2020 2020                     
- 8084a9d:	8820 1010 1010 1010 1010 1010 1010 1010      ...............
- 8084aad:	0410 0404 0404 0404 0404 1004 1010 1010     ................
- 8084abd:	1010 4141 4141 4141 0101 0101 0101 0101     ..AAAAAA........
- 8084acd:	0101 0101 0101 0101 0101 0101 1010 1010     ................
- 8084add:	1010 4242 4242 4242 0202 0202 0202 0202     ..BBBBBB........
- 8084aed:	0202 0202 0202 0202 0202 0202 1010 1010     ................
- 8084afd:	0020 0000 0000 0000 0000 0000 0000 0000      ...............
-	...
-
-08084b80 <__sf_fake_stdin>:
+08084a81 <_ctype_>:
+ 8084a81:	2000 2020 2020 2020 2020 2828 2828 2028     .         ((((( 
+ 8084a91:	2020 2020 2020 2020 2020 2020 2020 2020                     
+ 8084aa1:	8820 1010 1010 1010 1010 1010 1010 1010      ...............
+ 8084ab1:	0410 0404 0404 0404 0404 1004 1010 1010     ................
+ 8084ac1:	1010 4141 4141 4141 0101 0101 0101 0101     ..AAAAAA........
+ 8084ad1:	0101 0101 0101 0101 0101 0101 1010 1010     ................
+ 8084ae1:	1010 4242 4242 4242 0202 0202 0202 0202     ..BBBBBB........
+ 8084af1:	0202 0202 0202 0202 0202 0202 1010 1010     ................
+ 8084b01:	0020 0000 0000 0000 0000 0000 0000 0000      ...............
 	...
 
-08084ba0 <__sf_fake_stdout>:
+08084b84 <__sf_fake_stdin>:
 	...
 
-08084bc0 <__sf_fake_stderr>:
+08084ba4 <__sf_fake_stdout>:
 	...
 
-08084be0 <__month_lengths>:
- 8084be0:	001f 0000 001c 0000 001f 0000 001e 0000     ................
- 8084bf0:	001f 0000 001e 0000 001f 0000 001f 0000     ................
- 8084c00:	001e 0000 001f 0000 001e 0000 001f 0000     ................
- 8084c10:	001f 0000 001d 0000 001f 0000 001e 0000     ................
- 8084c20:	001f 0000 001e 0000 001f 0000 001f 0000     ................
- 8084c30:	001e 0000 001f 0000 001e 0000 001f 0000     ................
- 8084c40:	5a54 4700 544d 2500 3031 5e5b 2d30 2c39     TZ.GMT.%10[^0-9,
- 8084c50:	2d2b 255d 006e 254d 7568 6e25 252e 7568     +-]%n.M%hu%n.%hu
- 8084c60:	6e25 252e 7568 6e25 2f00 6825 2575 3a6e     %n.%hu%n./%hu%n:
- 8084c70:	6825 2575 3a6e 6825 2575 006e               %hu%n:%hu%n.
+08084bc4 <__sf_fake_stderr>:
+	...
 
-08084c7c <link_const_variable_data_end>:
- 8084c7c:	080810e5 	.word	0x080810e5
- 8084c80:	080817bd 	.word	0x080817bd
- 8084c84:	08081fc5 	.word	0x08081fc5
- 8084c88:	08082089 	.word	0x08082089
- 8084c8c:	080821dd 	.word	0x080821dd
- 8084c90:	080823b5 	.word	0x080823b5
- 8084c94:	08082555 	.word	0x08082555
- 8084c98:	08082a25 	.word	0x08082a25
- 8084c9c:	08082a55 	.word	0x08082a55
- 8084ca0:	08082ac1 	.word	0x08082ac1
- 8084ca4:	08082b85 	.word	0x08082b85
- 8084ca8:	08082c09 	.word	0x08082c09
- 8084cac:	08082c8d 	.word	0x08082c8d
+08084be4 <__month_lengths>:
+ 8084be4:	001f 0000 001c 0000 001f 0000 001e 0000     ................
+ 8084bf4:	001f 0000 001e 0000 001f 0000 001f 0000     ................
+ 8084c04:	001e 0000 001f 0000 001e 0000 001f 0000     ................
+ 8084c14:	001f 0000 001d 0000 001f 0000 001e 0000     ................
+ 8084c24:	001f 0000 001e 0000 001f 0000 001f 0000     ................
+ 8084c34:	001e 0000 001f 0000 001e 0000 001f 0000     ................
+ 8084c44:	5a54 4700 544d 2500 3031 5e5b 2d30 2c39     TZ.GMT.%10[^0-9,
+ 8084c54:	2d2b 255d 006e 254d 7568 6e25 252e 7568     +-]%n.M%hu%n.%hu
+ 8084c64:	6e25 252e 7568 6e25 2f00 6825 2575 3a6e     %n.%hu%n./%hu%n:
+ 8084c74:	6825 2575 3a6e 6825 2575 006e               %hu%n:%hu%n.
+
+08084c80 <link_const_variable_data_end>:
+ 8084c80:	080810e5 	.word	0x080810e5
+ 8084c84:	080817bd 	.word	0x080817bd
+ 8084c88:	08081fc5 	.word	0x08081fc5
+ 8084c8c:	08082089 	.word	0x08082089
+ 8084c90:	080821dd 	.word	0x080821dd
+ 8084c94:	080823b5 	.word	0x080823b5
+ 8084c98:	08082555 	.word	0x08082555
+ 8084c9c:	08082a25 	.word	0x08082a25
+ 8084ca0:	08082a55 	.word	0x08082a55
+ 8084ca4:	08082ac1 	.word	0x08082ac1
+ 8084ca8:	08082b85 	.word	0x08082b85
+ 8084cac:	08082c09 	.word	0x08082c09
+ 8084cb0:	08082c8d 	.word	0x08082c8d
+
+08084cb4 <link_constructors_end>:
+	...

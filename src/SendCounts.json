@@ -1,6 +1,6 @@
 {
   "event": "Cellular_LiPo_Hook",
-  "url": "https://business.api.ubidots.com/api/v1.6/devices/{{PARTICLE_DEVICE_ID}}/?token=--- Your Token Here ---",
+  "url": "https://business.api.ubidots.com/api/v1.6/devices/{{PARTICLE_DEVICE_ID}}/?token=-- Your Token Here --",
   "requestType": "POST",
   "mydevices": true,
   "noDefaults": true,
