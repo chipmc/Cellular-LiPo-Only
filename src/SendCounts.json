@@ -1,0 +1,29 @@
+{
+  "event": "Cellular_LiPo_Hook",
+  "url": "https://business.api.ubidots.com/api/v1.6/devices/{{PARTICLE_DEVICE_ID}}/?token=--- Your Token Here ---",
+  "requestType": "POST",
+  "mydevices": true,
+  "noDefaults": true,
+  "responseTemplate": "{{soilmoisture1.0.status_code}}",
+  "responseTopic": "{{PARTICLE_DEVICE_ID}}_Cellular_LiPo_Hook",
+  "json": {
+    "Soilmoisture1": "{{Soilmoisture1}}",
+    "Soilmoisture2": "{{Soilmoisture2}}",
+    "Soilmoisture3": "{{Soilmoisture3}}",
+    "Soilmoisture4": "{{Soilmoisture4}}",
+    "Soilmoisture5": "{{Soilmoisture5}}",
+    "Soilmoisture6": "{{Soilmoisture6}}",
+    "Precipitation": "{{Precipitation}}",
+    "Soiltemp": "{{Soiltemp}}",
+    "Humidity": "{{Humidity}}",
+    "Temperature": "{{Paneltemperature}}",
+    "Panelhumidity": "{{Panelhumidity}}",
+    "Paneltemperature": "{{Temperature}}",
+    "Battery": "{{Battery}}",
+    "Radiotech": "{{Radiotech}}",
+    "Signal": "{{Signal}}",
+    "Quality": "{{Quality}}",
+    "Resets": "{{Resets}}",
+    "Alerts": "{{Alerts}}"
+  }
+}
