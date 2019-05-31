@@ -6,13 +6,14 @@
 * Sensor details ....
 * Author: Chip McClelland chip@seeinsights.com
 * Sponsor: Colorado State University
-* License: 
+* License: GPL v3
 * Date: 31- May 2019
 */
 
 // v1.00 - Initial Release - Rough program outline
+// v1.01 - Updated Readme and added GPL v3 license
 
-#define SOFTWARERELEASENUMBER "1.00"               // Keep track of release numbers
+#define SOFTWARERELEASENUMBER "1.01"               // Keep track of release numbers
 
 // Included Libraries
 // Add libraries for sensors here
