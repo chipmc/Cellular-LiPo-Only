@@ -12,8 +12,9 @@
 
 // v1.00 - Initial Release - Rough program outline
 // v1.01 - Updated Readme and added GPL v3 license
+// v1.02 - Added a flag that limits Webhooks to once per wake cycle
 
-#define SOFTWARERELEASENUMBER "1.01"               // Keep track of release numbers
+#define SOFTWARERELEASENUMBER "1.02"               // Keep track of release numbers
 
 // Included Libraries
 // Add libraries for sensors here
@@ -56,7 +57,7 @@ const int hardResetPin =  D4;                       // Power Cycles the Electron
 volatile bool watchDogFlag = false;                 // Flag is raised in the watchdog ISR
 
 // Timing Variables
-const int wakeBoundary = 1*3600 + 0*60 + 0;         // 1 hour 0 minutes 0 seconds
+const int wakeBoundary = 0*3600 + 5*60 + 0;         // 0 hour 5 minutes 0 seconds
 const unsigned long stayAwakeLong = 90000;          // In lowPowerMode, how long to stay awake every hour
 const unsigned long webhookWait = 45000;            // How long will we wair for a WebHook response
 const unsigned long resetWait = 30000;              // How long will we wait in ERROR_STATE until reset
@@ -77,6 +78,7 @@ bool dataInFlight = true;
 const char* releaseNumber = SOFTWARERELEASENUMBER;  // Displays the release on the menu
 byte controlRegister;                               // Stores the control register values
 bool verboseMode;                                   // Enables more active communications for configutation and setup
+bool clearToSend;                                   // A flag that limits webHooks to one per wakecycle
 
 // Variables Related To Particle Mobile Application Reporting
 char SignalString[64];                     // Used to communicate Wireless RSSI and Description
@@ -100,6 +102,7 @@ char batteryString[16];
 time_t t;                                           // Global time vairable
 byte currentHourlyPeriod;                           // This is where we will know if the period changed
 byte currentDailyPeriod;                            // We will keep daily counts as well as period counts
+byte currentMinutePeriod;                           // control timing when using 5-min samp intervals
 
 // Battery monitoring
 float lowBattLimit=3.0;                             // Trigger for Low Batt State - LiPo voltage
@@ -211,7 +214,8 @@ void loop()
   case IDLE_STATE:
     if (verboseMode && state != oldState) publishStateTransition();
     if (lowPowerMode && (millis() - stayAwakeTimeStamp) > stayAwake) state = SLEEPING_STATE;
-    if (Time.hour() != currentHourlyPeriod) state = MEASURING_STATE;    // We want to report on the hour but not after bedtime
+    //if (Time.hour() != currentHourlyPeriod) state = MEASURING_STATE;    // We want to report on the hour but not after bedtime
+    if ((Time.minute() % 5 == 0) && (Time.minute() != currentMinutePeriod)) state = MEASURING_STATE; 
     if (batteryVoltage <= lowBattLimit) state = LOW_BATTERY_STATE;               // The battery is low - sleep
     break;
 
@@ -273,9 +277,13 @@ void loop()
       digitalWrite(blueLED,LOW);                                        // Turn off the LED
       readyForBed = true;                                               // Set the flag for the night
     }
-    int secondsToHour = (60*(60 - Time.minute()));                      // Time till the top of the hour
+    int wakeInSeconds = constrain(wakeBoundary - Time.now() % wakeBoundary, 1, wakeBoundary);
     // In your use case, substitute the line below with the instrcution to the TPL5111 to disable the device
-    System.sleep(SLEEP_MODE_SOFTPOWEROFF,secondsToHour);                // Very deep sleep till the next hour - then resets
+    //System.sleep(SLEEP_MODE_SOFTPOWEROFF,secondsToHour);                // Very deep sleep till the next hour - then resets
+    System.sleep(D6,RISING,wakeInSeconds);  
+    state = IDLE_STATE;                                                  // need to go back to idle immediately after wakup
+    clearToSend = true;                                                   // This flag will ensure we only do one webHook on each wake cycle
+    connectToParticle();                                                 // Reconnect to Particle (not needed for stop sleep)
     } break;
 
 
@@ -327,12 +335,13 @@ void sendEvent()
 {
   char data[512];                                                         // Store the date in this character array - not global
   snprintf(data, sizeof(data), "{\"Soilmoisture1\":%4.1f, \"Soilmoisture2\":%4.1f, \"Soilmoisture3\":%4.1f, \"Soilmoisture4\":%4.1f, \"Soilmoisture5\":%4.1f, \"Soilmoisture6\":%4.1f, \"Precipitation\": %i, \"Soiltemp\":%4.1f, \"Humidity\":%4.1f, \"Temperature\":%4.1f, \"Panelhumidity\":%4.1f, \"Paneltemperature\":%4.1f, \"Battery\":%4.1f, \"Radiotech\": %i, \"Signal\": %4.1f, \"Quality\": %4.1f, \"Resets\":%i, \"Alerts\":%i}", soilMoisture1, soilMoisture2, soilMoisture3, soilMoisture4, soilMoisture5, soilMoisture6, precipitationCount, soilTempInC, humidity, temperature, panelHumidity, panelTemperature, batteryVoltage, rat, strengthPercentage, qualityPercentage,resetCount, alertCount);
-  Particle.publish("Cellular_LiPo_Hook", data, PRIVATE);
+  if(!lowPowerMode || clearToSend) Particle.publish("Cellular_LiPo_Hook", data, PRIVATE);  // If lowPowerMode - must have clear to send
+  currentMinutePeriod = Time.minute();
   currentHourlyPeriod = Time.hour();                                      // Change the time period
   currentDailyPeriod = Time.day();
   dataInFlight = true;                                                // set the data inflight flag
   webhookTimeStamp = millis();
-
+  clearToSend = false;
 }
 
 void UbidotsHandler(const char *event, const char *data)              // Looks at the response from Ubidots - Will reset Photon if no successful response
