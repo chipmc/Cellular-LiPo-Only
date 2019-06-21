@@ -13,8 +13,9 @@
 // v1.00 - Initial Release - Rough program outline
 // v1.01 - Updated Readme and added GPL v3 license
 // v1.02 - Added a flag that limits Webhooks to once per wake cycle
+// v1.02a - a better way - moved to STATE rather than the send function
 
-#define SOFTWARERELEASENUMBER "1.02"               // Keep track of release numbers
+#define SOFTWARERELEASENUMBER "1.02a"               // Keep track of release numbers
 
 // Included Libraries
 // Add libraries for sensors here
@@ -238,8 +239,11 @@ void loop()
     if (verboseMode && state != oldState) publishStateTransition();
     if (Particle.connected()) {
       if (Time.hour() == 12) Particle.syncTime();                         // Set the clock each day at noon
-      sendEvent();                                                        // Send data to Ubidots
-      state = RESP_WAIT_STATE;                                            // Wait for Response
+      if(!lowPowerMode || clearToSend) {
+        sendEvent();                                                      // Send data to Ubidots if we haven't already
+        state = RESP_WAIT_STATE;                                          // Wait for Response
+      }
+      else state = IDLE_STATE;                                            // If we have already sent - back to IDLE
     }
     else state = ERROR_STATE;
     break;
@@ -335,7 +339,7 @@ void sendEvent()
 {
   char data[512];                                                         // Store the date in this character array - not global
   snprintf(data, sizeof(data), "{\"Soilmoisture1\":%4.1f, \"Soilmoisture2\":%4.1f, \"Soilmoisture3\":%4.1f, \"Soilmoisture4\":%4.1f, \"Soilmoisture5\":%4.1f, \"Soilmoisture6\":%4.1f, \"Precipitation\": %i, \"Soiltemp\":%4.1f, \"Humidity\":%4.1f, \"Temperature\":%4.1f, \"Panelhumidity\":%4.1f, \"Paneltemperature\":%4.1f, \"Battery\":%4.1f, \"Radiotech\": %i, \"Signal\": %4.1f, \"Quality\": %4.1f, \"Resets\":%i, \"Alerts\":%i}", soilMoisture1, soilMoisture2, soilMoisture3, soilMoisture4, soilMoisture5, soilMoisture6, precipitationCount, soilTempInC, humidity, temperature, panelHumidity, panelTemperature, batteryVoltage, rat, strengthPercentage, qualityPercentage,resetCount, alertCount);
-  if(!lowPowerMode || clearToSend) Particle.publish("Cellular_LiPo_Hook", data, PRIVATE);  // If lowPowerMode - must have clear to send
+  Particle.publish("Cellular_LiPo_Hook", data, PRIVATE);  // If lowPowerMode - must have clear to send
   currentMinutePeriod = Time.minute();
   currentHourlyPeriod = Time.hour();                                      // Change the time period
   currentDailyPeriod = Time.day();
