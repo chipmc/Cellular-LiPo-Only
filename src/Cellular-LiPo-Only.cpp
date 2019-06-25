@@ -20,6 +20,8 @@
 // v1.01 - Updated Readme and added GPL v3 license
 // v1.02 - Added a flag that limits Webhooks to once per wake cycle
 // v1.02a - a better way - moved to STATE rather than the send function
+// v1.03 - Added a time valid check
+// v1.04 - Added a step to store current minute in EEPROM
 
 void setup();
 void loop();
@@ -37,8 +39,8 @@ int setLowPowerMode(String command);
 void publishStateTransition(void);
 bool meterParticlePublish(void);
 void fullModemReset();
-#line 18 "/Users/chipmc/Documents/Maker/Particle/Projects/Cellular-LiPo-Only/src/Cellular-LiPo-Only.ino"
-#define SOFTWARERELEASENUMBER "1.02a"               // Keep track of release numbers
+#line 20 "/Users/chipmc/Documents/Maker/Particle/Projects/Cellular-LiPo-Only/src/Cellular-LiPo-Only.ino"
+#define SOFTWARERELEASENUMBER "1.04"               // Keep track of release numbers
 
 // Included Libraries
 // Add libraries for sensors here
@@ -73,10 +75,6 @@ State oldState = INITIALIZATION_STATE;
 
 // Pin Constants
 const int blueLED =       D7;                       // This LED is on the Electron itself
-const int userSwitch =    D5;                       // User switch with a pull-up resistor
-const int donePin =       D6;                       // This pin is used to let the watchdog timer know we are still alive
-const int wakeUpPin =     A7;                       // Pin the watchdog will ping us on
-const int hardResetPin =  D4;                       // Power Cycles the Electron and the Carrier Board
 
 volatile bool watchDogFlag = false;                 // Flag is raised in the watchdog ISR
 
@@ -102,7 +100,6 @@ bool dataInFlight = true;
 const char* releaseNumber = SOFTWARERELEASENUMBER;  // Displays the release on the menu
 byte controlRegister;                               // Stores the control register values
 bool verboseMode;                                   // Enables more active communications for configutation and setup
-bool clearToSend;                                   // A flag that limits webHooks to one per wakecycle
 
 // Variables Related To Particle Mobile Application Reporting
 char SignalString[64];                     // Used to communicate Wireless RSSI and Description
@@ -123,9 +120,7 @@ char batteryString[16];
 
 
 // Time Period Related Variables
-time_t t;                                           // Global time vairable
-byte currentHourlyPeriod;                           // This is where we will know if the period changed
-byte currentDailyPeriod;                            // We will keep daily counts as well as period counts
+time_t currentCountTime;                            // Global time vairable
 byte currentMinutePeriod;                           // control timing when using 5-min samp intervals
 
 // Battery monitoring
@@ -156,10 +151,6 @@ void setup()                                                      // Note: Disco
   state = IDLE_STATE;
 
   pinMode(blueLED, OUTPUT);                                       // declare the Blue LED Pin as an output
-  pinMode(userSwitch,INPUT);                                      // Momentary contact button on board for direct user input
-  pinMode(donePin,OUTPUT);                                        // To pet the watchdog
-  pinMode(wakeUpPin,INPUT);                                       // This pin is active HIGH
-  pinMode(hardResetPin,OUTPUT);                     // For a hard reset active HIGH
 
   char responseTopic[125];
   String deviceID = System.deviceID();                            // Multiple Electrons share the same hook - keeps things straight
@@ -205,9 +196,12 @@ void setup()                                                      // Note: Disco
     fullModemReset();                                                   // This will reset the modem and the device will reboot
   }
 
+  // Load time variables
   int8_t tempTimeZoneOffset = EEPROM.read(MEM_MAP::timeZoneAddr);       // Load Time zone data from FRAM
   if (tempTimeZoneOffset <= 12 && tempTimeZoneOffset >= -12)  Time.zone((float)tempTimeZoneOffset);  // Load Timezone from FRAM
   else Time.zone(0);                                                    // Default is GMT in case proper value not in EEPROM
+  time_t t = EEPROM.read(MEM_MAP::currentCountsTimeAddr);
+  currentMinutePeriod = Time.minute(t);
 
   // And set the flags from the control register
   controlRegister = EEPROM.read(MEM_MAP::controlRegisterAddr);          // Read the Control Register for system modes so they stick even after reset
@@ -215,12 +209,6 @@ void setup()                                                      // Note: Disco
   verboseMode     = (0b00001000 & controlRegister);                     // Set the verboseMode
   
   takeMeasurements();                                                   // For the benefit of monitoring the device
-
-  if (!digitalRead(userSwitch)) {                                       // Rescue mode to locally take lowPowerMode so you can connect to device
-    lowPowerMode = false;                                               // Press the user switch while resetting the device
-    controlRegister = (0b11111110 & controlRegister);                   // Turn off Low power mode
-    EEPROM.write(controlRegister,MEM_MAP::controlRegisterAddr);         // Write to the EEMPROM
-  }
 
   if (batteryVoltage <= lowBattLimit) state = LOW_BATTERY_STATE;         // Only connect if we have battery
   else if(!connectToParticle()) {
@@ -239,7 +227,7 @@ void loop()
     if (verboseMode && state != oldState) publishStateTransition();
     if (lowPowerMode && (millis() - stayAwakeTimeStamp) > stayAwake) state = SLEEPING_STATE;
     //if (Time.hour() != currentHourlyPeriod) state = MEASURING_STATE;    // We want to report on the hour but not after bedtime
-    if ((Time.minute() % 5 == 0) && (Time.minute() != currentMinutePeriod)) state = MEASURING_STATE; 
+    if ((Time.minute() % 5 == 0) && (Time.now() - currentCountTime > 60)) state = MEASURING_STATE; 
     if (batteryVoltage <= lowBattLimit) state = LOW_BATTERY_STATE;               // The battery is low - sleep
     break;
 
@@ -262,11 +250,8 @@ void loop()
     if (verboseMode && state != oldState) publishStateTransition();
     if (Particle.connected()) {
       if (Time.hour() == 12) Particle.syncTime();                         // Set the clock each day at noon
-      if(!lowPowerMode || clearToSend) {
-        sendEvent();                                                      // Send data to Ubidots if we haven't already
-        state = RESP_WAIT_STATE;                                          // Wait for Response
-      }
-      else state = IDLE_STATE;                                            // If we have already sent - back to IDLE
+      sendEvent();                                                      // Send data to Ubidots if we haven't already
+      state = RESP_WAIT_STATE;                                          // Wait for Response
     }
     else state = ERROR_STATE;
     break;
@@ -309,7 +294,6 @@ void loop()
     //System.sleep(SLEEP_MODE_SOFTPOWEROFF,secondsToHour);                // Very deep sleep till the next hour - then resets
     System.sleep(D6,RISING,wakeInSeconds);  
     state = IDLE_STATE;                                                  // need to go back to idle immediately after wakup
-    clearToSend = true;                                                   // This flag will ensure we only do one webHook on each wake cycle
     connectToParticle();                                                 // Reconnect to Particle (not needed for stop sleep)
     } break;
 
@@ -342,10 +326,10 @@ void loop()
         System.reset();
       }
       else if (Time.now() - EEPROM.read(MEM_MAP::currentCountsTimeAddr) > 7200L) { //It has been more than two hours since a sucessful hook response
-        if (Particle.connected()) Particle.publish("State","Error State - Power Cycle", PRIVATE);  // Broadcast Reset Action
+        if (Particle.connected()) Particle.publish("State","Error State - Lost Session", PRIVATE);  // Broadcast Reset Action
         delay(2000);
         EEPROM.write(MEM_MAP::resetCountAddr,0);                           // Zero the ResetCount
-        digitalWrite(hardResetPin,HIGH);                              // This will cut all power to the Electron AND the carrier board
+        fullModemReset();                                             // Full Modem reset and reboots
       }
       else {                                                          // If we have had 3 resets - time to do something more
         if (Particle.connected()) Particle.publish("State","Error State - Full Modem Reset", PRIVATE);            // Brodcase Reset Action
@@ -363,12 +347,10 @@ void sendEvent()
   char data[512];                                                         // Store the date in this character array - not global
   snprintf(data, sizeof(data), "{\"Soilmoisture1\":%4.1f, \"Soilmoisture2\":%4.1f, \"Soilmoisture3\":%4.1f, \"Soilmoisture4\":%4.1f, \"Soilmoisture5\":%4.1f, \"Soilmoisture6\":%4.1f, \"Precipitation\": %i, \"Soiltemp\":%4.1f, \"Humidity\":%4.1f, \"Temperature\":%4.1f, \"Panelhumidity\":%4.1f, \"Paneltemperature\":%4.1f, \"Battery\":%4.1f, \"Radiotech\": %i, \"Signal\": %4.1f, \"Quality\": %4.1f, \"Resets\":%i, \"Alerts\":%i}", soilMoisture1, soilMoisture2, soilMoisture3, soilMoisture4, soilMoisture5, soilMoisture6, precipitationCount, soilTempInC, humidity, temperature, panelHumidity, panelTemperature, batteryVoltage, rat, strengthPercentage, qualityPercentage,resetCount, alertCount);
   Particle.publish("Cellular_LiPo_Hook", data, PRIVATE);  // If lowPowerMode - must have clear to send
-  currentMinutePeriod = Time.minute();
-  currentHourlyPeriod = Time.hour();                                      // Change the time period
-  currentDailyPeriod = Time.day();
+  currentCountTime = Time.now();
+  EEPROM.write(MEM_MAP::currentCountsTimeAddr, currentCountTime);
   dataInFlight = true;                                                // set the data inflight flag
   webhookTimeStamp = millis();
-  clearToSend = false;
 }
 
 void UbidotsHandler(const char *event, const char *data)              // Looks at the response from Ubidots - Will reset Photon if no successful response
@@ -462,7 +444,10 @@ bool connectToParticle() {
     // Code I want to run while connecting
     Particle.process();
   }
-  if (Particle.connected()) return 1;                               // Were able to connect successfully
+  if (Particle.connected()) {
+    waitFor(Time.isValid, 60000);
+    return 1;                               // Were able to connect successfully
+  }
   else return 0;                                                    // Failed to connect
 }
 
@@ -524,11 +509,10 @@ int setTimeZone(String command)
   if ((tempTimeZoneOffset < -12) | (tempTimeZoneOffset > 12)) return 0;   // Make sure it falls in a valid range or send a "fail" result
   Time.zone((float)tempTimeZoneOffset);
   EEPROM.write(MEM_MAP::timeZoneAddr,tempTimeZoneOffset);                             // Store the new value in FRAMwrite8
-  t = Time.now();
   snprintf(data, sizeof(data), "Time zone offset %i",tempTimeZoneOffset);
   Particle.publish("Time",data,PRIVATE);
   delay(1000);
-  Particle.publish("Time",Time.timeStr(t),PRIVATE);
+  Particle.publish("Time",Time.timeStr(),PRIVATE);
   return 1;
 }
 
@@ -587,4 +571,3 @@ void fullModemReset() {  // Adapted form Rikkas7's https://github.com/rickkas7/e
 	// Go into deep sleep for 10 seconds to try to reset everything. This turns off the modem as well.
 	System.sleep(SLEEP_MODE_DEEP, 10);
 }
-

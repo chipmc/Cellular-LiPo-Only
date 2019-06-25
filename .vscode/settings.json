@@ -4,8 +4,8 @@
     "files.associations": {
         "*.ino": "cpp"
     },
-    "particle.targetDevice": "Electron-Dev",
-    "particle.firmwareVersion": "1.1.0",
-    "particle.targetPlatform": "electron",
+    "particle.targetDevice": "Boron-G3CC",
+    "particle.firmwareVersion": "1.2.1-rc.2",
+    "particle.targetPlatform": "boron",
     "cortex-debug.openocdPath": "/Users/chipmc/.particle/toolchains/openocd/0.10.0-particle.1/bin/openocd"
 }
