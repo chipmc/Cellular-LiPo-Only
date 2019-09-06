@@ -22,6 +22,8 @@
 // v1.02a - a better way - moved to STATE rather than the send function
 // v1.03 - Added a time valid check
 // v1.04 - Added a step to store current minute in EEPROM
+// v1.05 - Simplified the way we check for time to report
+// v1.06 - Changed stayAwakeLong to 25 sec
 
 void setup();
 void loop();
@@ -39,8 +41,8 @@ int setLowPowerMode(String command);
 void publishStateTransition(void);
 bool meterParticlePublish(void);
 void fullModemReset();
-#line 20 "/Users/chipmc/Documents/Maker/Particle/Projects/Cellular-LiPo-Only/src/Cellular-LiPo-Only.ino"
-#define SOFTWARERELEASENUMBER "1.04"               // Keep track of release numbers
+#line 22 "/Users/chipmc/Documents/Maker/Particle/Projects/Cellular-LiPo-Only/src/Cellular-LiPo-Only.ino"
+#define SOFTWARERELEASENUMBER "1.05"               // Keep track of release numbers
 
 // Included Libraries
 // Add libraries for sensors here
@@ -80,7 +82,7 @@ volatile bool watchDogFlag = false;                 // Flag is raised in the wat
 
 // Timing Variables
 const int wakeBoundary = 0*3600 + 5*60 + 0;         // 0 hour 5 minutes 0 seconds
-const unsigned long stayAwakeLong = 90000;          // In lowPowerMode, how long to stay awake every hour
+const unsigned long stayAwakeLong = 25000;          // In lowPowerMode, how long to stay awake every hour
 const unsigned long webhookWait = 45000;            // How long will we wair for a WebHook response
 const unsigned long resetWait = 30000;              // How long will we wait in ERROR_STATE until reset
 const int publishFrequency = 1000;                  // We can only publish once a second
@@ -88,7 +90,7 @@ unsigned long stayAwakeTimeStamp = 0;               // Timestamps for our timing
 unsigned long stayAwake;                            // Stores the time we need to wait before napping
 unsigned long webhookTimeStamp = 0;                 // Webhooks...
 unsigned long resetTimeStamp = 0;                   // Resets - this keeps you from falling into a reset loop
-unsigned long lastPublish = 0;                      // Can only publish 1/sec on avg and 4/sec burst
+
 
 // Program Variables
 int resetCount;                                     // Counts the number of times the Electron has had a pin reset
@@ -217,7 +219,6 @@ void setup()                                                      // Note: Disco
   }
 
   if(Particle.connected() && verboseMode) Particle.publish("Startup",StartupMessage,PRIVATE);   // Let Particle know how the startup process went
-  lastPublish = millis();
 }
 
 void loop()
@@ -228,6 +229,9 @@ void loop()
     if (lowPowerMode && (millis() - stayAwakeTimeStamp) > stayAwake) state = SLEEPING_STATE;
     //if (Time.hour() != currentHourlyPeriod) state = MEASURING_STATE;    // We want to report on the hour but not after bedtime
     if ((Time.minute() % 5 == 0) && (Time.now() - currentCountTime > 60)) state = MEASURING_STATE; 
+    meterParticlePublish();
+    Particle.publish("Minutes",String(Time.minute()),PRIVATE);
+    Particle.publish("Now",String(Time.now()),PRIVATE);
     if (batteryVoltage <= lowBattLimit) state = LOW_BATTERY_STATE;               // The battery is low - sleep
     break;
 
@@ -240,7 +244,6 @@ void loop()
       if (verboseMode) {
         waitUntil(meterParticlePublish);
         if(Particle.connected()) Particle.publish("State","Error taking Measurements",PRIVATE);
-        lastPublish = millis();
       }
     }
     else state = REPORTING_STATE;
@@ -279,7 +282,6 @@ void loop()
         if (verboseMode) {
           waitUntil(meterParticlePublish);
           Particle.publish("State","Going to Sleep",PRIVATE);
-          lastPublish = millis();
         }
         delay(1000);                                                    // Time to send last update
         disconnectFromParticle();                                       // If connected, we need to disconned and power down the modem
@@ -304,7 +306,6 @@ void loop()
       if (verboseMode) {
         waitUntil(meterParticlePublish);
         Particle.publish("State","Low Battery - Sleeping",PRIVATE);
-        lastPublish = millis();
       }
       delay(1000);                                                    // Time to send last update
       disconnectFromParticle();                                       // If connected, we need to disconned and power down the modem
@@ -365,7 +366,6 @@ void UbidotsHandler(const char *event, const char *data)              // Looks a
   if ((responseCode == 200) || (responseCode == 201))
   {
     if (Particle.connected()) Particle.publish("State","Response Received", PRIVATE);
-    lastPublish = millis();
     EEPROM.write(MEM_MAP::currentCountsTimeAddr,Time.now());          // Record the last successful Webhook Response
     dataInFlight = false;                                             // Data has been received
   }
@@ -546,14 +546,17 @@ void publishStateTransition(void)
   if(Particle.connected()) {
     waitUntil(meterParticlePublish);
     Particle.publish("State Transition",stateTransitionString, PRIVATE);
-    lastPublish = millis();
   }
   Serial.println(stateTransitionString);
 }
 
 bool meterParticlePublish(void)
 {
-  if(millis() - lastPublish >= publishFrequency) return 1;
+  static unsigned long lastPublish = 0;
+  if(millis() - lastPublish >= publishFrequency) {
+    lastPublish = millis();
+    return 1;
+  }
   else return 0;
 }
 
