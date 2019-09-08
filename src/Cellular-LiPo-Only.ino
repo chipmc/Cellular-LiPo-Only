@@ -4,10 +4,14 @@
 * Method of operation - device will be awakened by a TPL5111 on the EN pin, will connect in Setup and will measure and report in loop
 * Measurements will be reposrted via Webhook to Ubidots.  Once a response is received, the device will signal the TPL5111 to bring the EN pin low
 * Sensor details ....
+*
+* In this iteration, the device will take samples at 15, 30 and 45 minutes after the hour.  At the top of the hour, another sample will be taken 
+* In addition, at the top of the hour, the device will connect to Particle and send 4 webhooks corresponding to each sample taken 
+* 
 * Author: Chip McClelland chip@seeinsights.com
 * Sponsor: Colorado State University
 * License: GPL v3
-* Date: 31- May 2019
+* Date: 6 September 2019
 */
 
 // v1.00 - Initial Release - Rough program outline
@@ -18,8 +22,9 @@
 // v1.04 - Added a step to store current minute in EEPROM
 // v1.05 - Simplified the way we check for time to report
 // v1.06 - Changed stayAwakeLong to 25 sec
+// v1.07 - Illustrating a new approach - sample every 15 mins and report every hour on the hour
 
-#define SOFTWARERELEASENUMBER "1.05"               // Keep track of release numbers
+#define SOFTWARERELEASENUMBER "1.07"               // Keep track of release numbers
 
 // Included Libraries
 // Add libraries for sensors here
@@ -35,10 +40,11 @@ namespace MEM_MAP {                                 // Moved to namespace instea
     timeZoneAddr          = 0x3,                    // Store the local time zone data - 8 Bits
     controlRegisterAddr   = 0x4,                    // This is the control register for storing the current state - 8 Bits
     currentCountsTimeAddr = 0x5,                    // Time of last report - 32 bits
+    sensorData1Object     = 0x6                     // The first data object
   };
 };
 
-#define MEMORYMAPVERSION 1                          // Lets us know if we need to reinitialize the memory map
+#define MEMORYMAPVERSION 2                          // Lets us know if we need to reinitialize the memory map
 
 // Prototypes and System Mode calls
 SYSTEM_MODE(SEMI_AUTOMATIC);                        // This will enable user code to start executing automatically.
@@ -58,16 +64,15 @@ const int blueLED =       D7;                       // This LED is on the Electr
 volatile bool watchDogFlag = false;                 // Flag is raised in the watchdog ISR
 
 // Timing Variables
-const int wakeBoundary = 0*3600 + 5*60 + 0;         // 0 hour 5 minutes 0 seconds
+const int wakeBoundary = 0*3600 + 15*60 + 0;        // 0 hour 15 minutes 0 seconds
 const unsigned long stayAwakeLong = 25000;          // In lowPowerMode, how long to stay awake every hour
 const unsigned long webhookWait = 45000;            // How long will we wair for a WebHook response
 const unsigned long resetWait = 30000;              // How long will we wait in ERROR_STATE until reset
 const int publishFrequency = 1000;                  // We can only publish once a second
 unsigned long stayAwakeTimeStamp = 0;               // Timestamps for our timing variables..
-unsigned long stayAwake;                            // Stores the time we need to wait before napping
+unsigned long stayAwake = stayAwakeLong;            // Stores the time we need to wait before napping
 unsigned long webhookTimeStamp = 0;                 // Webhooks...
 unsigned long resetTimeStamp = 0;                   // Resets - this keeps you from falling into a reset loop
-
 
 // Program Variables
 int resetCount;                                     // Counts the number of times the Electron has had a pin reset
@@ -79,6 +84,32 @@ bool dataInFlight = true;
 const char* releaseNumber = SOFTWARERELEASENUMBER;  // Displays the release on the menu
 byte controlRegister;                               // Stores the control register values
 bool verboseMode;                                   // Enables more active communications for configutation and setup
+
+// Keypad struct for mapping buttons, notes, note values, LED array index, and default color
+struct sensor_data_struct {                         // Here we define the structure for collecting and storing data from the sensors
+  bool validData;
+  unsigned long timeStamp;
+  float soilMoisture1;
+  float soilMoisture2;
+  float soilMoisture3;
+  float soilMoisture4;
+  float soilMoisture5;
+  float soilMoisture6;
+  int precipitationCount;
+  float soilTempInC;
+  float humidity;
+  float temperature;
+  float panelHumidity;
+  float panelTemperature;
+  float batteryVoltage;
+  int rat;
+  float strengthPercentage;
+  float qualityPercentage;
+};
+
+sensor_data_struct sensor_data;
+
+
 
 // Variables Related To Particle Mobile Application Reporting
 char SignalString[64];                     // Used to communicate Wireless RSSI and Description
@@ -97,32 +128,13 @@ char panelHumidityString[16];
 char panelTemperatureString[16];
 char batteryString[16];
 
-
-// Time Period Related Variables
+// Time Period and reporting Related Variables
 time_t currentCountTime;                            // Global time vairable
 byte currentMinutePeriod;                           // control timing when using 5-min samp intervals
 
 // Battery monitoring
 float lowBattLimit=3.0;                             // Trigger for Low Batt State - LiPo voltage
 bool lowPowerMode;                                  // Flag for Low Power Mode operations
-
-// This section is where we will initialize sensor specific variables, libraries and function prototypes
-float soilMoisture1;
-float soilMoisture2;
-float soilMoisture3;
-float soilMoisture4;
-float soilMoisture5;
-float soilMoisture6;
-int precipitationCount;
-float soilTempInC;
-float humidity;
-float temperature;
-float panelHumidity;
-float panelTemperature;
-float batteryVoltage;
-int rat;
-float strengthPercentage;
-float qualityPercentage;
 
 void setup()                                                      // Note: Disconnected Setup()
 {
@@ -151,7 +163,6 @@ void setup()                                                      // Note: Disco
   Particle.variable("SoilMoisture5",soilMoisture5String);
   Particle.variable("SoilMoisture6",soilMoisture6String);
 
-  
   Particle.function("Measure-Now",measureNow);
   Particle.function("LowPowerMode",setLowPowerMode);
   Particle.function("Verbose-Mode",setVerboseMode);
@@ -159,7 +170,7 @@ void setup()                                                      // Note: Disco
 
   if (MEMORYMAPVERSION != EEPROM.read(MEM_MAP::versionAddr)) {          // Check to see if the memory map is the right version
     EEPROM.put(MEM_MAP::versionAddr,MEMORYMAPVERSION);
-    for (int i=1; i < 10; i++) {
+    for (int i=1; i < 100; i++) {
       EEPROM.put(i,0);                                                  // Zero out the memory - new map or new device
     }
   }
@@ -186,10 +197,10 @@ void setup()                                                      // Note: Disco
   controlRegister = EEPROM.read(MEM_MAP::controlRegisterAddr);          // Read the Control Register for system modes so they stick even after reset
   lowPowerMode    = (0b00000001 & controlRegister);                     // Set the lowPowerMode
   verboseMode     = (0b00001000 & controlRegister);                     // Set the verboseMode
-  
+
   takeMeasurements();                                                   // For the benefit of monitoring the device
 
-  if (batteryVoltage <= lowBattLimit) state = LOW_BATTERY_STATE;         // Only connect if we have battery
+  if (sensor_data.batteryVoltage <= lowBattLimit) state = LOW_BATTERY_STATE;         // Only connect if we have battery
   else if(!connectToParticle()) {
     state = ERROR_STATE;                                                // We failed to connect can reset here or go to the ERROR state for remediation
     snprintf(StartupMessage, sizeof(StartupMessage), "Failed to connect");
@@ -204,12 +215,8 @@ void loop()
   case IDLE_STATE:
     if (verboseMode && state != oldState) publishStateTransition();
     if (lowPowerMode && (millis() - stayAwakeTimeStamp) > stayAwake) state = SLEEPING_STATE;
-    //if (Time.hour() != currentHourlyPeriod) state = MEASURING_STATE;    // We want to report on the hour but not after bedtime
-    if ((Time.minute() % 5 == 0) && (Time.now() - currentCountTime > 60)) state = MEASURING_STATE; 
-    waitUntil(meterParticlePublish);
-    Particle.publish("Minutes",String(Time.minute()),PRIVATE);
-    Particle.publish("Elapsed sec",String(Time.now() - currentCountTime),PRIVATE);
-    if (batteryVoltage <= lowBattLimit) state = LOW_BATTERY_STATE;               // The battery is low - sleep
+    if ((Time.minute() % 15 == 0) && (Time.now() - currentCountTime > 60)) state = MEASURING_STATE; 
+    if (sensor_data.batteryVoltage <= lowBattLimit) state = LOW_BATTERY_STATE;               // The battery is low - sleep
     break;
 
   case MEASURING_STATE:
@@ -223,31 +230,38 @@ void loop()
         if(Particle.connected()) Particle.publish("State","Error taking Measurements",PRIVATE);
       }
     }
-    else state = REPORTING_STATE;
+    else if (Time.minute() == 0) state = REPORTING_STATE;
+    else {
+      state = IDLE_STATE;
+      waitUntil(meterParticlePublish);
+      Particle.publish("State","Measurement taken and stored",PRIVATE);
+      }
     break;
 
   case REPORTING_STATE:
     if (verboseMode && state != oldState) publishStateTransition();
     if (Particle.connected()) {
       if (Time.hour() == 12) Particle.syncTime();                         // Set the clock each day at noon
-      sendEvent();                                                      // Send data to Ubidots if we haven't already
-      state = RESP_WAIT_STATE;                                          // Wait for Response
+      sendEvent();                                                        // Send data to Ubidots if we haven't already
+      state = RESP_WAIT_STATE;                                            // Wait for Response
     }
     else state = ERROR_STATE;
     break;
 
   case RESP_WAIT_STATE:
     if (verboseMode && state != oldState) publishStateTransition();
-    if (!dataInFlight)                                                // Response received back to IDLE state
+    if (!dataInFlight)                                                  // Response received back to IDLE state
     {
       state = IDLE_STATE;
-      stayAwake = stayAwakeLong;                                      // Keeps Electron awake after reboot - helps with recovery
+      stayAwake = stayAwakeLong;                                        // Keeps Electron awake after reboot - helps with recovery
       stayAwakeTimeStamp = millis();
+      waitUntil(meterParticlePublish);
+      Particle.publish("Reporting","Cycle Complete - Data Received",PRIVATE); 
     }
-    else if (millis() - webhookTimeStamp > webhookWait) {             // If it takes too long - will need to reset
+    else if (millis() - webhookTimeStamp > webhookWait) {               // If it takes too long - will need to reset
       resetTimeStamp = millis();
-      Particle.publish("spark/device/session/end", "", PRIVATE);      // If the device times out on the Webhook response, it will ensure a new session is started on next connect
-      state = ERROR_STATE;                                            // Response timed out
+      Particle.publish("spark/device/session/end", "", PRIVATE);        // If the device times out on the Webhook response, it will ensure a new session is started on next connect
+      state = ERROR_STATE;                                              // Response timed out
     } 
     break;
 
@@ -269,11 +283,9 @@ void loop()
       readyForBed = true;                                               // Set the flag for the night
     }
     int wakeInSeconds = constrain(wakeBoundary - Time.now() % wakeBoundary, 1, wakeBoundary);
-    // In your use case, substitute the line below with the instrcution to the TPL5111 to disable the device
-    //System.sleep(SLEEP_MODE_SOFTPOWEROFF,secondsToHour);                // Very deep sleep till the next hour - then resets
     System.sleep(D6,RISING,wakeInSeconds);  
-    state = IDLE_STATE;                                                  // need to go back to idle immediately after wakup
-    connectToParticle();                                                 // Reconnect to Particle (not needed for stop sleep)
+    state = IDLE_STATE;                                                 // need to go back to idle immediately after wakup
+    connectToParticle();                                                // Reconnect to Particle (not needed for stop sleep)
     } break;
 
 
@@ -306,13 +318,13 @@ void loop()
       else if (Time.now() - EEPROM.read(MEM_MAP::currentCountsTimeAddr) > 7200L) { //It has been more than two hours since a sucessful hook response
         if (Particle.connected()) Particle.publish("State","Error State - Lost Session", PRIVATE);  // Broadcast Reset Action
         delay(2000);
-        EEPROM.write(MEM_MAP::resetCountAddr,0);                           // Zero the ResetCount
+        EEPROM.write(MEM_MAP::resetCountAddr,0);                      // Zero the ResetCount
         fullModemReset();                                             // Full Modem reset and reboots
       }
       else {                                                          // If we have had 3 resets - time to do something more
         if (Particle.connected()) Particle.publish("State","Error State - Full Modem Reset", PRIVATE);            // Brodcase Reset Action
         delay(2000);
-        EEPROM.write(MEM_MAP::resetCountAddr,0);                           // Zero the ResetCount
+        EEPROM.write(MEM_MAP::resetCountAddr,0);                      // Zero the ResetCount
         fullModemReset();                                             // Full Modem reset and reboots
       }
     }
@@ -322,9 +334,13 @@ void loop()
 
 void sendEvent()
 {
-  char data[512];                                                         // Store the date in this character array - not global
-  snprintf(data, sizeof(data), "{\"Soilmoisture1\":%4.1f, \"Soilmoisture2\":%4.1f, \"Soilmoisture3\":%4.1f, \"Soilmoisture4\":%4.1f, \"Soilmoisture5\":%4.1f, \"Soilmoisture6\":%4.1f, \"Precipitation\": %i, \"Soiltemp\":%4.1f, \"Humidity\":%4.1f, \"Temperature\":%4.1f, \"Panelhumidity\":%4.1f, \"Paneltemperature\":%4.1f, \"Battery\":%4.1f, \"Radiotech\": %i, \"Signal\": %4.1f, \"Quality\": %4.1f, \"Resets\":%i, \"Alerts\":%i}", soilMoisture1, soilMoisture2, soilMoisture3, soilMoisture4, soilMoisture5, soilMoisture6, precipitationCount, soilTempInC, humidity, temperature, panelHumidity, panelTemperature, batteryVoltage, rat, strengthPercentage, qualityPercentage,resetCount, alertCount);
-  Particle.publish("Cellular_LiPo_Hook", data, PRIVATE);  // If lowPowerMode - must have clear to send
+  char data[512];                                                     // Store the date in this character array - not global
+  for (int i = 0; i < 4; i++) {
+    sensor_data = EEPROM.get(6 + i*100,sensor_data);                  // This spacing of the objects - 100 - must match what we put in the takeMeasurements() function
+    snprintf(data, sizeof(data), "{\"Soilmoisture1\":%4.1f, \"Soilmoisture2\":%4.1f, \"Soilmoisture3\":%4.1f, \"Soilmoisture4\":%4.1f, \"Soilmoisture5\":%4.1f, \"Soilmoisture6\":%4.1f, \"Precipitation\": %i, \"Soiltemp\":%4.1f, \"Humidity\":%4.1f, \"Temperature\":%4.1f, \"Panelhumidity\":%4.1f, \"Paneltemperature\":%4.1f, \"Battery\":%4.1f, \"Radiotech\": %i, \"Signal\": %4.1f, \"Quality\": %4.1f, \"Resets\":%i, \"Alerts\":%i}", sensor_data.soilMoisture1, sensor_data.soilMoisture2, sensor_data.soilMoisture3, sensor_data.soilMoisture4, sensor_data.soilMoisture5, sensor_data.soilMoisture6, sensor_data.precipitationCount, sensor_data.soilTempInC, sensor_data.humidity, sensor_data.temperature, sensor_data.panelHumidity, sensor_data.panelTemperature, sensor_data.batteryVoltage, sensor_data.rat, sensor_data.strengthPercentage, sensor_data.qualityPercentage,resetCount, alertCount);
+    Particle.publish("Cellular_LiPo_Hook", data, PRIVATE);            // If lowPowerMode - must have clear to send
+    waitUntil(meterParticlePublish);                                  // Space out the sends
+  }
   currentCountTime = Time.now();
   EEPROM.write(MEM_MAP::currentCountsTimeAddr, currentCountTime);
   dataInFlight = true;                                                // set the data inflight flag
@@ -353,62 +369,91 @@ void UbidotsHandler(const char *event, const char *data)              // Looks a
 
 bool takeMeasurements() {
   // Mocked up here for the call - need to replace with your real readings
+  int reportCycle;                                                    // Where are we in the sense and report cycle
+  currentCountTime = Time.now();
+  int currentMinutes = Time.minute();                                // So we only have to check once
+  switch (currentMinutes) {
+    case 15:
+      reportCycle = 0;                                                // This is the first of the sample-only periods
+      break;  
+    case 30:
+      reportCycle = 1;                                                // This is the second of the sample-only periods
+      break; 
+    case 45:
+      reportCycle = 2;                                                // This is the third of the sample-only periods
+      break; 
+    case 0:
+      reportCycle = 3;                                                // This is the fourth of the sample-only periods
+      break; 
+    default:
+      reportCycle = 3;  
+      break;                                                          // just in case
+  }
+  
+
+  // Only gets marked true if we get all the measurements
+  sensor_data.validData = false;
 
   // SoilMoisture Measurements here
-  soilMoisture1 = random(100);
-  snprintf(soilMoisture1String,sizeof(soilMoisture1String), "%4.1f %%", soilMoisture1);
-  soilMoisture2 = random(100);
-  snprintf(soilMoisture2String,sizeof(soilMoisture2String), "%4.1f %%", soilMoisture2);
-  soilMoisture3 = random(100);
-  snprintf(soilMoisture3String,sizeof(soilMoisture3String), "%4.1f %%", soilMoisture3);
-  soilMoisture4 = random(100);
-  snprintf(soilMoisture4String,sizeof(soilMoisture4String), "%4.1f %%", soilMoisture4);
-  soilMoisture5 = random(100);
-  snprintf(soilMoisture5String,sizeof(soilMoisture5String), "%4.1f %%", soilMoisture5);
-  soilMoisture6 = random(100);
-  snprintf(soilMoisture6String,sizeof(soilMoisture6String), "%4.1f %%", soilMoisture6);
+  sensor_data.soilMoisture1 = random(100);
+  snprintf(soilMoisture1String,sizeof(soilMoisture1String), "%4.1f %%", sensor_data.soilMoisture1);
+  sensor_data.soilMoisture2 = random(100);
+  snprintf(soilMoisture2String,sizeof(soilMoisture2String), "%4.1f %%", sensor_data.soilMoisture2);
+  sensor_data.soilMoisture3 = random(100);
+  snprintf(soilMoisture3String,sizeof(soilMoisture3String), "%4.1f %%", sensor_data.soilMoisture3);
+  sensor_data.soilMoisture4 = random(100);
+  snprintf(soilMoisture4String,sizeof(soilMoisture4String), "%4.1f %%", sensor_data.soilMoisture4);
+  sensor_data.soilMoisture5 = random(100);
+  snprintf(soilMoisture5String,sizeof(soilMoisture5String), "%4.1f %%", sensor_data.soilMoisture5);
+  sensor_data.soilMoisture6 = random(100);
+  snprintf(soilMoisture6String,sizeof(soilMoisture6String), "%4.1f %%", sensor_data.soilMoisture6);
 
   // Number of times the precipitation counter has tipped
-  precipitationCount = random(1000);
-  snprintf(precipitationCountString,sizeof(precipitationCountString), "%i tips", precipitationCount);
+  sensor_data.precipitationCount = random(1000);
+  snprintf(precipitationCountString,sizeof(precipitationCountString), "%i tips", sensor_data.precipitationCount);
 
   // Measure the soil temp
-  soilTempInC = random(100);
-  snprintf(soilTempInCString, sizeof(soilTempInCString), "%4.1f C", soilTempInC);
+  sensor_data.soilTempInC = random(100);
+  snprintf(soilTempInCString, sizeof(soilTempInCString), "%4.1f C", sensor_data.soilTempInC);
 
   // Meaure air temp and humidity
-  humidity = random(100);
-  snprintf(humidityString,sizeof(humidityString), "%4.1f %%", humidity);
+  sensor_data.humidity = random(100);
+  snprintf(humidityString,sizeof(humidityString), "%4.1f %%", sensor_data.humidity);
 
-  temperature = random(100);
-  snprintf(temperatureString,sizeof(temperatureString), "%4.1f C", temperature);
+  sensor_data.temperature = random(100);
+  snprintf(temperatureString,sizeof(temperatureString), "%4.1f C", sensor_data.temperature);
 
   // Measure panel temp and humidity
-  panelHumidity = random(100);
-  snprintf(panelHumidityString,sizeof(panelHumidityString), "%4.1f %%", panelHumidity);
+  sensor_data.panelHumidity = random(100);
+  snprintf(panelHumidityString,sizeof(panelHumidityString), "%4.1f %%", sensor_data.panelHumidity);
 
-  panelTemperature = random(100);
-  snprintf(panelTemperatureString,sizeof(panelTemperatureString), "%4.1f C", panelTemperature);
+  sensor_data.panelTemperature = random(100);
+  snprintf(panelTemperatureString,sizeof(panelTemperatureString), "%4.1f C", sensor_data.panelTemperature);
 
   // Get battery voltage level
-  batteryVoltage = 4.0;                      // Voltage level of battery
-  snprintf(batteryString, sizeof(batteryString), "%4.1f %%", batteryVoltage);
+  sensor_data.batteryVoltage = 4.0;                      // Voltage level of battery
+  snprintf(batteryString, sizeof(batteryString), "%4.1f %%", sensor_data.batteryVoltage);
 
-  if (Cellular.ready()) getSignalStrength();                          // Test signal strength if the cellular modem is on and ready
+  if (Cellular.ready()) getSignalStrength();                            // Test signal strength if the cellular modem is on and ready
 
-  return 1;
+  // Indicate that this is a valid data array and store it
+  sensor_data.validData = true;
+  sensor_data.timeStamp = Time.now();
+  EEPROM.put(6 + 100*reportCycle,sensor_data);                              // Current object is 72 bytes long - leaving some room for expansion
+
+  return 1;                                                             // Done, measurements take and the data array is stored as an obeect in EEPROM                                         
 }
 
 void getSignalStrength()
 {
   // New Boron capability - https://community.particle.io/t/boron-lte-and-cellular-rssi-funny-values/45299/8
   CellularSignal sig = Cellular.RSSI();
-  rat = sig.getAccessTechnology();
+  sensor_data.rat = sig.getAccessTechnology();
   //float strengthVal = sig.getStrengthValue();
-  strengthPercentage = sig.getStrength();
+  sensor_data.strengthPercentage = sig.getStrength();
   //float qualityVal = sig.getQualityValue();
-  qualityPercentage = sig.getQuality();
-  snprintf(SignalString,sizeof(SignalString), "%s S:%2.0f%%, Q:%2.0f%% ", radioTech[rat], strengthPercentage, qualityPercentage);
+  sensor_data.qualityPercentage = sig.getQuality();
+  snprintf(SignalString,sizeof(SignalString), "%s S:%2.0f%%, Q:%2.0f%% ", radioTech[sensor_data.rat], sensor_data.strengthPercentage, sensor_data.qualityPercentage);
 }
 
 

@@ -1,6 +1,5 @@
-/Users/chipmc/Documents/Maker/Particle/Projects/Cellular-LiPo-Only/target//obj/./src/newlib_stubs.o: \
+/Users/chipmc/Documents/Maker/Particle/Projects/Cellular-LiPo-Only/target//obj/src/newlib_stubs.o: \
  src/newlib_stubs.cpp \
- ../../../modules/shared/nRF52840/inc/user-part/newlib_stubs.inc \
  /Users/chipmc/.particle/toolchains/gcc-arm/5.3.1/arm-none-eabi/include/sys/types.h \
  /Users/chipmc/.particle/toolchains/gcc-arm/5.3.1/arm-none-eabi/include/_ansi.h \
  /Users/chipmc/.particle/toolchains/gcc-arm/5.3.1/arm-none-eabi/include/newlib.h \
@@ -32,8 +31,6 @@
  /Users/chipmc/.particle/toolchains/gcc-arm/5.3.1/lib/gcc/arm-none-eabi/5.3.1/include/stdarg.h \
  ../../../services/inc/panic.h ../../../services/inc/panic_codes.h \
  ../../../services/inc/config.h ../../../services/inc/preprocessor.h
-
-../../../modules/shared/nRF52840/inc/user-part/newlib_stubs.inc:
 
 /Users/chipmc/.particle/toolchains/gcc-arm/5.3.1/arm-none-eabi/include/sys/types.h:
 
