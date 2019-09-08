@@ -23,8 +23,9 @@
 // v1.05 - Simplified the way we check for time to report
 // v1.06 - Changed stayAwakeLong to 25 sec
 // v1.07 - Illustrating a new approach - sample every 15 mins and report every hour on the hour
+// v1.08 - Refinements to better handle lowPowerMode
 
-#define SOFTWARERELEASENUMBER "1.07"               // Keep track of release numbers
+#define SOFTWARERELEASENUMBER "1.08"               // Keep track of release numbers
 
 // Included Libraries
 // Add libraries for sensors here
@@ -108,8 +109,6 @@ struct sensor_data_struct {                         // Here we define the struct
 };
 
 sensor_data_struct sensor_data;
-
-
 
 // Variables Related To Particle Mobile Application Reporting
 char SignalString[64];                     // Used to communicate Wireless RSSI and Description
@@ -207,6 +206,8 @@ void setup()                                                      // Note: Disco
   }
 
   if(Particle.connected() && verboseMode) Particle.publish("Startup",StartupMessage,PRIVATE);   // Let Particle know how the startup process went
+
+  stayAwakeTimeStamp = millis();                                      // Time stamp to keep us from going to sleep too early
 }
 
 void loop()
@@ -286,6 +287,7 @@ void loop()
     System.sleep(D6,RISING,wakeInSeconds);  
     state = IDLE_STATE;                                                 // need to go back to idle immediately after wakup
     connectToParticle();                                                // Reconnect to Particle (not needed for stop sleep)
+    stayAwakeTimeStamp = millis();                                      // Time stamp to keep us from going to sleep too early
     } break;
 
 
