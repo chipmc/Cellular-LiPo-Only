@@ -5,9 +5,9 @@
 * Measurements will be reposrted via Webhook to Ubidots.  Once a response is received, the device will signal the TPL5111 to bring the EN pin low
 * Sensor details ....
 *
-* In this iteration, the device will take samples at 15, 30 and 45 minutes after the hour.  At the top of the hour, another sample will be taken 
-* In addition, at the top of the hour, the device will connect to Particle and send 4 webhooks corresponding to each sample taken 
-* 
+* In this iteration, the device will take samples at 15, 30 and 45 minutes after the hour.  At the top of the hour, another sample will be taken
+* In addition, at the top of the hour, the device will connect to Particle and send 4 webhooks corresponding to each sample taken
+*
 * Author: Chip McClelland chip@seeinsights.com
 * Sponsor: Colorado State University
 * License: GPL v3
@@ -24,6 +24,7 @@
 // v1.06 - Changed stayAwakeLong to 25 sec
 // v1.07 - Illustrating a new approach - sample every 15 mins and report every hour on the hour
 // v1.08 - Refinements to better handle lowPowerMode
+// v1.09 - Fixed mem map issue
 
 #define SOFTWARERELEASENUMBER "1.08"               // Keep track of release numbers
 
@@ -35,13 +36,13 @@
 // Define the memory map - note can be EEPROM or FRAM
 namespace MEM_MAP {                                 // Moved to namespace instead of #define to limit scope
   enum Addresses {
-    versionAddr           = 0x0,                    // Where we store the memory map version number - 8 Bits
-    alertCountAddr        = 0x1,                    // Where we store our current alert count - 8 Bits
-    resetCountAddr        = 0x2,                    // This is where we keep track of how often the Electron was reset - 8 Bits
-    timeZoneAddr          = 0x3,                    // Store the local time zone data - 8 Bits
-    controlRegisterAddr   = 0x4,                    // This is the control register for storing the current state - 8 Bits
-    currentCountsTimeAddr = 0x5,                    // Time of last report - 32 bits
-    sensorData1Object     = 0x6                     // The first data object
+    versionAddr           = 0x00,                    // Where we store the memory map version number - 8 Bits
+    alertCountAddr        = 0x01,                    // Where we store our current alert count - 8 Bits
+    resetCountAddr        = 0x02,                    // This is where we keep track of how often the Electron was reset - 8 Bits
+    timeZoneAddr          = 0x03,                    // Store the local time zone data - 8 Bits
+    controlRegisterAddr   = 0x04,                    // This is the control register for storing the current state - 8 Bits
+    currentCountsTimeAddr = 0x05,                    // Time of last report - 32 bits
+    sensorData1Object     = 0x09                     // The first data object
   };
 };
 
@@ -216,7 +217,7 @@ void loop()
   case IDLE_STATE:
     if (verboseMode && state != oldState) publishStateTransition();
     if (lowPowerMode && (millis() - stayAwakeTimeStamp) > stayAwake) state = SLEEPING_STATE;
-    if ((Time.minute() % 15 == 0) && (Time.now() - currentCountTime > 60)) state = MEASURING_STATE; 
+    if ((Time.minute() % 15 == 0) && (Time.now() - currentCountTime > 60)) state = MEASURING_STATE;
     if (sensor_data.batteryVoltage <= lowBattLimit) state = LOW_BATTERY_STATE;               // The battery is low - sleep
     break;
 
@@ -257,13 +258,13 @@ void loop()
       stayAwake = stayAwakeLong;                                        // Keeps Electron awake after reboot - helps with recovery
       stayAwakeTimeStamp = millis();
       waitUntil(meterParticlePublish);
-      Particle.publish("Reporting","Cycle Complete - Data Received",PRIVATE); 
+      Particle.publish("Reporting","Cycle Complete - Data Received",PRIVATE);
     }
     else if (millis() - webhookTimeStamp > webhookWait) {               // If it takes too long - will need to reset
       resetTimeStamp = millis();
       Particle.publish("spark/device/session/end", "", PRIVATE);        // If the device times out on the Webhook response, it will ensure a new session is started on next connect
       state = ERROR_STATE;                                              // Response timed out
-    } 
+    }
     break;
 
   case SLEEPING_STATE: {                                                // This state is triggered once the park closes and runs until it opens
@@ -284,7 +285,7 @@ void loop()
       readyForBed = true;                                               // Set the flag for the night
     }
     int wakeInSeconds = constrain(wakeBoundary - Time.now() % wakeBoundary, 1, wakeBoundary);
-    System.sleep(D6,RISING,wakeInSeconds);  
+    System.sleep(D6,RISING,wakeInSeconds);
     state = IDLE_STATE;                                                 // need to go back to idle immediately after wakup
     connectToParticle();                                                // Reconnect to Particle (not needed for stop sleep)
     stayAwakeTimeStamp = millis();                                      // Time stamp to keep us from going to sleep too early
@@ -377,21 +378,21 @@ bool takeMeasurements() {
   switch (currentMinutes) {
     case 15:
       reportCycle = 0;                                                // This is the first of the sample-only periods
-      break;  
+      break;
     case 30:
       reportCycle = 1;                                                // This is the second of the sample-only periods
-      break; 
+      break;
     case 45:
       reportCycle = 2;                                                // This is the third of the sample-only periods
-      break; 
+      break;
     case 0:
       reportCycle = 3;                                                // This is the fourth of the sample-only periods
-      break; 
+      break;
     default:
-      reportCycle = 3;  
+      reportCycle = 3;
       break;                                                          // just in case
   }
-  
+
 
   // Only gets marked true if we get all the measurements
   sensor_data.validData = false;
@@ -443,7 +444,7 @@ bool takeMeasurements() {
   sensor_data.timeStamp = Time.now();
   EEPROM.put(6 + 100*reportCycle,sensor_data);                              // Current object is 72 bytes long - leaving some room for expansion
 
-  return 1;                                                             // Done, measurements take and the data array is stored as an obeect in EEPROM                                         
+  return 1;                                                             // Done, measurements take and the data array is stored as an obeect in EEPROM
 }
 
 void getSignalStrength()
